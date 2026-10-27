@@ -2,8 +2,8 @@ using System;
 
 namespace AmanhaEuEstudo.Core
 {
-    // Names are provisional (team still deciding). Values index GameState.stats and
-    // GameConfig.dailyDecay, so keep them contiguous from 0 and update StatCount if you add one.
+    // Names are provisional (team still deciding). Values index GameState.stats, so
+    // keep them contiguous from 0 and update StatCount if you add one.
     public enum StatType
     {
         Health = 0,

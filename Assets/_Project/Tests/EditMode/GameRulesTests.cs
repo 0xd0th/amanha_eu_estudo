@@ -26,7 +26,9 @@ namespace AmanhaEuEstudo.Tests
         private GameRules Rules(int totalDays, int[] decay, params ChoiceData[] choices)
         {
             var config = ScriptableObject.CreateInstance<GameConfig>();
-            config.Setup(60, 0, 100, totalDays, decay, choices);
+            var decayDeltas = new List<StatDelta>();
+            for (int i = 0; i < decay.Length; i++) decayDeltas.Add(new StatDelta((StatType)i, decay[i]));
+            config.Setup(60, 0, 100, totalDays, decayDeltas.ToArray(), choices);
             created.Add(config);
             return new GameRules(config);
         }
@@ -141,6 +143,21 @@ namespace AmanhaEuEstudo.Tests
             Assert.AreEqual(55, rules.State.GetStat(StatType.Health));
             Assert.AreEqual(50, rules.State.GetStat(StatType.Intelligence));
             Assert.AreEqual(59, rules.State.GetStat(StatType.Psychological));
+        }
+
+        [Test]
+        public void DailyDecay_MissingStatIsZero_DuplicatesAdd()
+        {
+            var config = ScriptableObject.CreateInstance<GameConfig>();
+            created.Add(config);
+            config.Setup(60, 0, 100, 14, new[]
+            {
+                new StatDelta(StatType.Health, -3),
+                new StatDelta(StatType.Health, -2),
+            }, null);
+
+            Assert.AreEqual(-5, config.GetDailyDecay(StatType.Health));
+            Assert.AreEqual(0, config.GetDailyDecay(StatType.Intelligence));
         }
 
         [Test]

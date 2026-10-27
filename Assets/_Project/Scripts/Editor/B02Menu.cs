@@ -88,7 +88,10 @@ namespace AmanhaEuEstudo.EditorTools
             {
                 var config = ScriptableObject.CreateInstance<GameConfig>();
                 // Decay of -5 per stat is a placeholder, pending team decision (G03).
-                config.Setup(60, 0, 100, 14, new[] { -5, -5, -5 }, choices);
+                config.Setup(60, 0, 100, 14, new[]
+                {
+                    D(StatType.Health, -5), D(StatType.Intelligence, -5), D(StatType.Psychological, -5),
+                }, choices);
                 AssetDatabase.CreateAsset(config, ConfigPath);
                 Debug.Log($"[B02] Criado: {ConfigPath}");
             }

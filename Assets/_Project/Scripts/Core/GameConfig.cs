@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -13,8 +12,13 @@ namespace AmanhaEuEstudo.Core
         [Min(1)]
         [SerializeField] private int totalDays = 14;
 
-        [Tooltip("Applied to each stat when a night ends, indexed by StatType. PLACEHOLDER values, pending team decision (G03).")]
-        [SerializeField] private int[] dailyDecay = { -5, -5, -5 };
+        [Tooltip("Applied to each stat when a night ends. A stat may appear more than once (amounts add up) or not at all (no decay). PLACEHOLDER values, pending team decision (G03).")]
+        [SerializeField] private StatDelta[] dailyDecay =
+        {
+            new StatDelta(StatType.Health, -5),
+            new StatDelta(StatType.Intelligence, -5),
+            new StatDelta(StatType.Psychological, -5),
+        };
 
         [Tooltip("Catalog of every choice in the game. Availability is decided by each ChoiceData.")]
         [SerializeField] private List<ChoiceData> choices = new List<ChoiceData>();
@@ -27,8 +31,13 @@ namespace AmanhaEuEstudo.Core
 
         public int GetDailyDecay(StatType stat)
         {
-            int i = (int)stat;
-            return dailyDecay != null && i < dailyDecay.Length ? dailyDecay[i] : 0;
+            int total = 0;
+            if (dailyDecay == null) return total;
+            foreach (var d in dailyDecay)
+            {
+                if (d.stat == stat) total += d.amount;
+            }
+            return total;
         }
 
         public int Clamp(int value)
@@ -38,21 +47,19 @@ namespace AmanhaEuEstudo.Core
 
         // Used by editor tools and tests, which cannot touch the serialized fields directly.
         public void Setup(int initialValue, int minValue, int maxValue, int totalDays,
-            int[] dailyDecay, IEnumerable<ChoiceData> choices)
+            StatDelta[] dailyDecay, IEnumerable<ChoiceData> choices)
         {
             this.initialValue = initialValue;
             this.minValue = minValue;
             this.maxValue = maxValue;
             this.totalDays = totalDays;
-            this.dailyDecay = dailyDecay ?? new int[EnumExtensions.StatCount];
+            this.dailyDecay = dailyDecay ?? new StatDelta[0];
             this.choices = choices != null ? new List<ChoiceData>(choices) : new List<ChoiceData>();
             OnValidate();
         }
 
         private void OnValidate()
         {
-            if (dailyDecay == null || dailyDecay.Length != EnumExtensions.StatCount)
-                Array.Resize(ref dailyDecay, EnumExtensions.StatCount);
             if (maxValue <= minValue) maxValue = minValue + 1;
             initialValue = Mathf.Clamp(initialValue, minValue, maxValue);
             if (totalDays < 1) totalDays = 1;

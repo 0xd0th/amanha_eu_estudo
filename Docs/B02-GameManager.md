@@ -15,7 +15,7 @@ Assets/_Project/
 | Tipo | Papel |
 |---|---|
 | `StatType`, `TimeOfDay` | Enums. Nomes das barras: só em `StatType` + `DisplayNames.Of` (renomear = 2 lugares, ambos em `Core`). |
-| `GameConfig` (SO) | Valor inicial/mín./máx., total de dias, desgaste diário por barra, catálogo de escolhas. |
+| `GameConfig` (SO) | Valor inicial/mín./máx., total de dias, desgaste diário (lista de `StatDelta` {barra, valor}; barra repetida soma, ausente = 0), catálogo de escolhas. |
 | `ChoiceData` (SO) | id, nome, períodos, disponibilidade, deltas, flag "exausto amanhã". |
 | `GameState` | Dados puros `[Serializable]` (arrays, sem `Dictionary`): pronto para `JsonUtility`. |
 | `GameRules` | Regras em C# puro (testável sem cena). |
