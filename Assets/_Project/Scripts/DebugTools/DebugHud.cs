@@ -117,7 +117,7 @@ namespace AmanhaEuEstudo.DebugTools
 
         private static void EnsureEventSystem()
         {
-            var es = FindFirstObjectByType<EventSystem>();
+            var es = FindAnyObjectByType<EventSystem>();
             if (es == null)
                 es = new GameObject("EventSystem", typeof(EventSystem)).GetComponent<EventSystem>();
 
