@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3ac468ee4e8b64bf8931f074d719560f, type: 3}
+  m_Name: GameConfig
+  m_EditorClassIdentifier: AmanhaEuEstudo.Core::AmanhaEuEstudo.Core.GameConfig
+  initialValue: 60
+  minValue: 0
+  maxValue: 100
+  totalDays: 14
+  dailyDecay:
+  - stat: 0
+    amount: -5
+  - stat: 1
+    amount: -5
+  - stat: 2
+    amount: -5
+  choices:
+  - {fileID: 11400000, guid: 5fcc00a8950534824a5d4bcd9e86e47b, type: 2}
+  - {fileID: 11400000, guid: 3433304ac46ca46989042eb16a74d885, type: 2}
+  - {fileID: 11400000, guid: 2a23dde29cb3a4079a60091b45d97cf6, type: 2}
+  - {fileID: 11400000, guid: f31534700df7945e1b84f9063fdbff4f, type: 2}
+  - {fileID: 11400000, guid: 11b52c1973063494cac3d1a52186a278, type: 2}
+  - {fileID: 11400000, guid: d9c029049fba848bf9c489c2218feb1d, type: 2}
+  - {fileID: 11400000, guid: e1680383e427c441da4d7ef85150f333, type: 2}
+  - {fileID: 11400000, guid: c499c7215a077461785fee5a1f48f03f, type: 2}
+  - {fileID: 11400000, guid: 36611beb9d9194c47bc7b676efe0204f, type: 2}
+  - {fileID: 11400000, guid: b457df611ae7f40e4b490c923a98eb3b, type: 2}

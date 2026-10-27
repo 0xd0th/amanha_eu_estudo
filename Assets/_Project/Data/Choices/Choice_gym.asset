@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 91390e322df2649778de7245b35c42bf, type: 3}
+  m_Name: Choice_gym
+  m_EditorClassIdentifier: AmanhaEuEstudo.Core::AmanhaEuEstudo.Core.ChoiceData
+  id: gym
+  displayName: Academia
+  periods: 6
+  availability: 0
+  deltas:
+  - stat: 0
+    amount: 12
+  - stat: 2
+    amount: -3
+  causesExhaustionNextDay: 0
