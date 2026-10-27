@@ -1,0 +1,19 @@
+{
+    "name": "AmanhaEuEstudo.EditorTools",
+    "rootNamespace": "AmanhaEuEstudo.EditorTools",
+    "references": [
+        "AmanhaEuEstudo.Core",
+        "AmanhaEuEstudo.DebugTools"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
