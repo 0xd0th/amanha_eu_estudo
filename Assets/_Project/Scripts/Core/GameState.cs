@@ -27,8 +27,8 @@ namespace AmanhaEuEstudo.Core
         {
             day = 1;
             period = TimeOfDay.Morning;
-            if (stats == null || stats.Length != EnumExtensions.StatCount)
-                stats = new int[EnumExtensions.StatCount];
+            // Always a fresh array: nobody may keep a reference to the previous game's values.
+            stats = new int[EnumExtensions.StatCount];
             for (int i = 0; i < stats.Length; i++) stats[i] = config.InitialValue;
             exhaustedToday = false;
             exhaustedTomorrow = false;

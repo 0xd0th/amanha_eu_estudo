@@ -317,5 +317,137 @@ namespace AmanhaEuEstudo.Tests
             Assert.AreEqual(60, seenOld);
             Assert.AreEqual(100, seenNew);
         }
+
+        // ---- Start / restart announce the same sequence ----
+
+        private static List<string> Record(GameRules rules)
+        {
+            var log = new List<string>();
+            rules.OnGameRestarted += () => log.Add("Restarted");
+            rules.OnStatChanged += (s, o, n) => log.Add($"Stat:{s}:{o}->{n}");
+            rules.OnDayStarted += d => log.Add($"Day:{d}");
+            rules.OnPeriodChanged += p => log.Add($"Period:{p}");
+            return log;
+        }
+
+        private static readonly string[] InitialSequence =
+        {
+            "Stat:Health:60->60", "Stat:Intelligence:60->60", "Stat:Psychological:60->60",
+            "Day:1", "Period:Morning",
+        };
+
+        private static void AssertInitialState(GameRules rules)
+        {
+            Assert.AreEqual(1, rules.State.day);
+            Assert.AreEqual(TimeOfDay.Morning, rules.State.period);
+            Assert.AreEqual(GamePhase.Playing, rules.State.phase);
+            Assert.IsFalse(rules.State.exhaustedToday);
+            Assert.IsFalse(rules.State.exhaustedTomorrow);
+            Assert.IsNull(rules.State.BurnoutStat);
+            for (int i = 0; i < EnumExtensions.StatCount; i++)
+                Assert.AreEqual(60, rules.State.stats[i]);
+        }
+
+        [Test]
+        public void StartGame_AnnouncesInitialSequence_WithoutRestartedEvent()
+        {
+            var rules = Rules(14, NoDecay, Neutral("n", PeriodMask.All));
+            var log = Record(rules);
+
+            rules.StartGame();
+
+            CollectionAssert.AreEqual(InitialSequence, log);
+        }
+
+        [Test]
+        public void Restart_MidDay_AnnouncesSameSequenceAsStart_PrecededByRestarted()
+        {
+            var rules = Rules(14, NoDecay, Choice("hit", PeriodMask.All, ChoiceAvailability.Always, false,
+                new StatDelta(StatType.Health, -10)));
+            Pass(rules);
+            Assert.AreEqual(TimeOfDay.Afternoon, rules.State.period);
+            var log = Record(rules);
+
+            rules.Restart();
+
+            var expected = new List<string> { "Restarted" };
+            expected.AddRange(InitialSequence);
+            CollectionAssert.AreEqual(expected, log);
+            AssertInitialState(rules);
+        }
+
+        [Test]
+        public void Restart_AfterBurnout_RestoresInitialStateAndAnnouncesIt()
+        {
+            var deadly = Choice("deadly", PeriodMask.All, ChoiceAvailability.Always, false,
+                new StatDelta(StatType.Psychological, -100));
+            var rules = Rules(14, NoDecay, deadly);
+            rules.ApplyChoice(deadly);
+            Assert.AreEqual(GamePhase.GameOver, rules.State.phase);
+            var log = Record(rules);
+
+            rules.Restart();
+
+            Assert.AreEqual("Restarted", log[0]);
+            CollectionAssert.AreEqual(InitialSequence, log.GetRange(1, log.Count - 1));
+            AssertInitialState(rules);
+        }
+
+        [Test]
+        public void Restart_AfterFinalDayReached_RestoresInitialStateAndAnnouncesIt()
+        {
+            var rules = Rules(1, NoDecay, Neutral("n", PeriodMask.All));
+            Pass(rules); Pass(rules); Pass(rules);
+            Assert.AreEqual(GamePhase.FinalDayReached, rules.State.phase);
+            var log = Record(rules);
+
+            rules.Restart();
+
+            Assert.AreEqual("Restarted", log[0]);
+            CollectionAssert.AreEqual(InitialSequence, log.GetRange(1, log.Count - 1));
+            AssertInitialState(rules);
+        }
+
+        [Test]
+        public void Restart_ClearsExhaustionFlags()
+        {
+            var tire = Choice("tire", PeriodMask.All, ChoiceAvailability.Always, true);
+            var rules = Rules(14, NoDecay, tire);
+            Pass(rules); Pass(rules); Pass(rules);
+            Assert.IsTrue(rules.State.exhaustedToday);
+            rules.ApplyChoice(tire);
+            Assert.IsTrue(rules.State.exhaustedTomorrow);
+
+            rules.Restart();
+
+            AssertInitialState(rules);
+        }
+
+        [Test]
+        public void Restart_AllocatesNewStatsArray()
+        {
+            var rules = Rules(14, NoDecay, Neutral("n", PeriodMask.All));
+            var before = rules.State.stats;
+
+            rules.Restart();
+
+            Assert.AreNotSame(before, rules.State.stats);
+        }
+
+        [Test]
+        public void Restart_DoesNotMutateTheOldStatsArray()
+        {
+            var hit = Choice("hit", PeriodMask.All, ChoiceAvailability.Always, false,
+                new StatDelta(StatType.Health, -10));
+            var rules = Rules(14, NoDecay, hit);
+            rules.ApplyChoice(hit);
+            var old = rules.State.stats;
+            Assert.AreEqual(50, old[(int)StatType.Health]);
+
+            rules.Restart();
+
+            Assert.AreEqual(50, old[(int)StatType.Health]);
+            Assert.AreEqual(60, rules.State.GetStat(StatType.Health));
+        }
     }
 }

@@ -52,6 +52,13 @@ namespace AmanhaEuEstudo.Core
             rules.OnGameRestarted += () => OnGameRestarted?.Invoke();
         }
 
+        // Runs before other scripts' Start (execution order -100). Listeners must subscribe in OnEnable
+        // to receive the initial events; objects created later should read State when they spawn.
+        private void Start()
+        {
+            rules?.StartGame();
+        }
+
         private void OnDestroy()
         {
             if (Instance == this) Instance = null;

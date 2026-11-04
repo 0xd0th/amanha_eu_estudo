@@ -64,10 +64,33 @@ namespace AmanhaEuEstudo.Core
             return true;
         }
 
+        // First game start. The constructor stays silent because nobody can be subscribed yet;
+        // GameManager calls this from Start so listeners (subscribed in OnEnable) get the initial values.
+        public void StartGame()
+        {
+            BeginNewGame(restarted: false);
+        }
+
+        // Works from any phase (Playing, GameOver, FinalDayReached).
         public void Restart()
         {
+            BeginNewGame(restarted: true);
+        }
+
+        // Single path for start and restart, so both always announce the same sequence:
+        // [OnGameRestarted] -> OnStatChanged (old == new) per stat -> OnDayStarted(1) -> OnPeriodChanged(Morning).
+        private void BeginNewGame(bool restarted)
+        {
             State.Reset(Config);
-            OnGameRestarted?.Invoke();
+            if (restarted) OnGameRestarted?.Invoke();
+
+            for (int i = 0; i < EnumExtensions.StatCount; i++)
+            {
+                int value = State.stats[i];
+                OnStatChanged?.Invoke((StatType)i, value, value);
+            }
+            OnDayStarted?.Invoke(State.day);
+            OnPeriodChanged?.Invoke(State.period);
         }
 
         private void AdvancePeriod()
