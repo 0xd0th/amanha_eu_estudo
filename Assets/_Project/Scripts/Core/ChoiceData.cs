@@ -14,6 +14,22 @@ namespace AmanhaEuEstudo.Core
             this.stat = stat;
             this.amount = amount;
         }
+
+        // Editor-time hint only: nothing is changed or removed. Duplicates are legal (amounts add up)
+        // but usually a data-entry mistake.
+        public static void WarnDuplicateStats(StatDelta[] deltas, UnityEngine.Object owner, string field)
+        {
+            if (deltas == null) return;
+            for (int i = 0; i < deltas.Length; i++)
+            {
+                for (int j = 0; j < i; j++)
+                {
+                    if (deltas[j].stat != deltas[i].stat) continue;
+                    Debug.LogWarning($"{owner.name}: '{field}' lists {DisplayNames.Of(deltas[i].stat)} more than once.", owner);
+                    break;
+                }
+            }
+        }
     }
 
     [CreateAssetMenu(fileName = "Choice_New", menuName = "Amanhã eu estudo/Choice Data")]
@@ -33,6 +49,11 @@ namespace AmanhaEuEstudo.Core
         public ChoiceAvailability Availability => availability;
         public StatDelta[] Deltas => deltas;
         public bool CausesExhaustionNextDay => causesExhaustionNextDay;
+
+        private void OnValidate()
+        {
+            StatDelta.WarnDuplicateStats(deltas, this, nameof(deltas));
+        }
 
         public bool AppearsIn(TimeOfDay period)
         {

@@ -63,6 +63,7 @@ namespace AmanhaEuEstudo.Core
             if (maxValue <= minValue) maxValue = minValue + 1;
             initialValue = Mathf.Clamp(initialValue, minValue, maxValue);
             if (totalDays < 1) totalDays = 1;
+            StatDelta.WarnDuplicateStats(dailyDecay, this, nameof(dailyDecay));
         }
     }
 }
