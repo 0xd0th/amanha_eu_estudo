@@ -27,7 +27,7 @@ Assets/_Project/
 
 - `GetAvailableChoices()`: escolhas disponíveis agora (lista vazia se a partida acabou).
 - `ApplyChoice(choice, performanceMultiplier = 1f)`: retorna `false` e não muda nada se a partida acabou ou a escolha não está disponível.
-- `RestartGame()`.
+- `RestartGame()`: reinicia a partir de qualquer fase (Playing, GameOver, FinalDayReached). Cria um `GameState.stats` novo (nunca reaproveita o array anterior).
 - `State` (leitura): `day`, `period`, `stats`, `exhaustedToday`, `phase`, `BurnoutStat`.
 
 ### Eventos
@@ -40,7 +40,28 @@ Assets/_Project/
 | `OnDayStarted(int dia)` | Após o desgaste, com o estado do novo dia pronto (não dispara em Burnout nem no dia final). |
 | `OnBurnout(StatType)` | No instante em que a barra chega ao mínimo. |
 | `OnFinalDayReached` | Fim da noite do último dia (após o desgaste). `State.day` permanece em `TotalDays`. |
-| `OnGameRestarted` | Após `RestartGame()`. Só este evento é disparado no reinício; quem escuta deve reler o `State`. |
+| `OnGameRestarted` | Primeiro evento do reinício (`RestartGame()`), logo após o novo estado ser criado. Não dispara no início do jogo. |
+
+### Sequência de início e de reinício
+
+Início e reinício passam pelo mesmo método (`GameRules.BeginNewGame`), então a sequência é idêntica; o reinício só acrescenta `OnGameRestarted` na frente:
+
+| # | Início (`GameManager.Start`) | Reinício (`RestartGame()`) |
+|---|---|---|
+| 1 | | `OnGameRestarted` |
+| 2 | `OnStatChanged` de cada barra, na ordem do enum | idem |
+| 3 | `OnDayStarted(1)` | idem |
+| 4 | `OnPeriodChanged(Morning)` | idem |
+
+`OnStatChanged` no início/reinício vem com `old == new` (o valor inicial do `GameConfig`): é um aviso de "valor definido", não uma mudança.
+
+### Regra de inscrição
+
+`GameManager` tem `DefaultExecutionOrder(-100)`, então o `Start` dele roda **antes** do `Start` dos demais scripts. Por isso:
+
+- Ouvintes devem se inscrever em `OnEnable` (que roda antes de qualquer `Start`) para receber os eventos iniciais.
+- Objetos criados depois do início do jogo (instanciados em runtime, cenas carregadas depois) não recebem esses eventos: devem ler `GameManager.Instance.State` ao nascer.
+- Quem se inscreve em `Start` (ou depois) perde a sequência inicial.
 
 ## Como outros cards se conectam
 
@@ -64,6 +85,8 @@ Assets/_Project/
 3. Arraste o asset para a lista `Choices` do `GameConfig`.
 
 Nenhum código é necessário.
+
+Se a mesma barra aparecer mais de uma vez no desgaste diário do `GameConfig` ou nos deltas de uma `ChoiceData`, o `OnValidate` emite um `Debug.LogWarning` com o nome do asset e da barra. É só um aviso: nada é corrigido nem removido (repetir é permitido, os valores somam).
 
 ## Testar pela cena de debug
 
