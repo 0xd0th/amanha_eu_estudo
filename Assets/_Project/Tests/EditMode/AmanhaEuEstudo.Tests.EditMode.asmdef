@@ -3,6 +3,7 @@
     "rootNamespace": "AmanhaEuEstudo.Tests",
     "references": [
         "AmanhaEuEstudo.Core",
+        "AmanhaEuEstudo.UI",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],
