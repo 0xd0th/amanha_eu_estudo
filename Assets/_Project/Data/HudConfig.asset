@@ -1,0 +1,49 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9148e23bb6af64b6f99d24eff6615c13, type: 3}
+  m_Name: HudConfig
+  m_EditorClassIdentifier: AmanhaEuEstudo.UI::AmanhaEuEstudo.UI.HudConfig
+  fillDuration: 0.4
+  easeOut: 1
+  lowThreshold: 25
+  blinkSpeed: 2
+  lowMinBrightness: 0.45
+  barBackgroundColor: {r: 0.12, g: 0.12, b: 0.15, a: 1}
+  barFrameColor: {r: 0.9, g: 0.9, b: 0.9, a: 1}
+  bars:
+  - stat: 0
+    icon: {fileID: 21300000, guid: 1eca167deac1e4ac09c5943dd8f02c2c, type: 3}
+    fillColor: {r: 0.86, g: 0.25, b: 0.3, a: 1}
+    pixelSteps: 48
+  - stat: 1
+    icon: {fileID: 21300000, guid: e4faccec3ded54c10bd852196133659d, type: 3}
+    fillColor: {r: 0.3, g: 0.55, b: 0.95, a: 1}
+    pixelSteps: 48
+  - stat: 2
+    icon: {fileID: 21300000, guid: ab1067680063840149497d84e9223564, type: 3}
+    fillColor: {r: 0.7, g: 0.45, b: 0.9, a: 1}
+    pixelSteps: 48
+  maxDebt: 14
+  emptyAlpha: 0.3
+  debtPixelSteps: 32
+  portraitSource: 0
+  portraitStat: 0
+  portraitStates:
+  - minValue: 50
+    sprite: {fileID: 21300000, guid: e69ff7fc29d604c95b9f3a1e1cda1efa, type: 3}
+    tint: {r: 1, g: 1, b: 1, a: 1}
+  - minValue: 25
+    sprite: {fileID: 21300000, guid: e69ff7fc29d604c95b9f3a1e1cda1efa, type: 3}
+    tint: {r: 0.75, g: 0.75, b: 0.75, a: 1}
+  - minValue: 0
+    sprite: {fileID: 21300000, guid: e69ff7fc29d604c95b9f3a1e1cda1efa, type: 3}
+    tint: {r: 0.45, g: 0.45, b: 0.45, a: 1}

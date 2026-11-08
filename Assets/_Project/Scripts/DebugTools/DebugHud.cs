@@ -17,6 +17,11 @@ namespace AmanhaEuEstudo.DebugTools
         private bool dirty = true;
         private Font font;
 
+        // Layout only. Defaults fill the screen (B02 scene); the B08 scene moves the panel to the
+        // bottom/center so it does not cover the HUD.
+        [SerializeField] private Vector2 panelAnchorMin = Vector2.zero;
+        [SerializeField] private Vector2 panelAnchorMax = Vector2.one;
+
         private void Awake()
         {
             font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
@@ -141,8 +146,8 @@ namespace AmanhaEuEstudo.DebugTools
             var panel = new GameObject("Panel", typeof(RectTransform), typeof(VerticalLayoutGroup));
             panel.transform.SetParent(canvasGo.transform, false);
             var panelRt = (RectTransform)panel.transform;
-            panelRt.anchorMin = Vector2.zero;
-            panelRt.anchorMax = Vector2.one;
+            panelRt.anchorMin = panelAnchorMin;
+            panelRt.anchorMax = panelAnchorMax;
             panelRt.offsetMin = new Vector2(30, 30);
             panelRt.offsetMax = new Vector2(-30, -30);
             var layout = panel.GetComponent<VerticalLayoutGroup>();

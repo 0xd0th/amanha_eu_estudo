@@ -3,6 +3,7 @@
     "rootNamespace": "AmanhaEuEstudo.DebugTools",
     "references": [
         "AmanhaEuEstudo.Core",
+        "AmanhaEuEstudo.UI",
         "UnityEngine.UI",
         "Unity.InputSystem"
     ],
