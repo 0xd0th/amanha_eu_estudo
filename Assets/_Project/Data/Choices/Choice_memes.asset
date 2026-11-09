@@ -22,3 +22,13 @@ MonoBehaviour:
   - stat: 1
     amount: -2
   causesExhaustionNextDay: 0
+  debtDelta: 1
+  lowScoreThreshold: 0.5
+  lowScoreDeltas:
+  - stat: 2
+    amount: 6
+  - stat: 1
+    amount: -6
+  lowScoreCausesExhaustion: 1
+  gainFactors: []
+  forceMaxDifficulty: 0

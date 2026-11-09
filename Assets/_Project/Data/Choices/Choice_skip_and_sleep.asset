@@ -18,9 +18,15 @@ MonoBehaviour:
   availability: 2
   deltas:
   - stat: 0
-    amount: 8
+    amount: 15
   - stat: 2
     amount: 3
   - stat: 1
     amount: -5
   causesExhaustionNextDay: 0
+  debtDelta: 1
+  lowScoreThreshold: 0
+  lowScoreDeltas: []
+  lowScoreCausesExhaustion: 0
+  gainFactors: []
+  forceMaxDifficulty: 0
