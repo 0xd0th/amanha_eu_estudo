@@ -11,6 +11,8 @@ namespace AmanhaEuEstudo.Core
         public GameState State { get; }
 
         public event Action<StatType, int, int> OnStatChanged;
+        // (old, new). Fires only when the debt changes, plus (0, 0) once per BeginNewGame as the initial value.
+        public event Action<int, int> OnStudyDebtChanged;
         public event Action<TimeOfDay> OnPeriodChanged;
         public event Action<int> OnDayStarted;
         public event Action<int> OnDayEnded;
@@ -43,8 +45,9 @@ namespace AmanhaEuEstudo.Core
         }
 
         // Returns false (and changes nothing) if the game is over or the choice is not available now.
-        // Deltas are applied in order; a stat reaching the minimum triggers burnout right there and
-        // the remaining deltas are skipped.
+        // Order: normal deltas (gains scaled by performance and gain factors) -> low score deltas (no
+        // multiplier) -> study debt -> exhaustion -> advance period. A stat reaching the minimum triggers
+        // burnout right there and everything after it (remaining deltas, debt, exhaustion) is skipped.
         public bool ApplyChoice(ChoiceData choice, float performanceMultiplier = 1f)
         {
             if (!IsAvailable(choice)) return false;
@@ -53,15 +56,34 @@ namespace AmanhaEuEstudo.Core
             foreach (var delta in choice.Deltas)
             {
                 // Only gains scale with performance; costs are the time spent and always apply in full.
+                // Single rounding: base x performance x factor.
                 int amount = delta.amount > 0
-                    ? Mathf.RoundToInt(delta.amount * multiplier)
+                    ? Mathf.RoundToInt(delta.amount * multiplier * choice.GetGainFactor(delta.stat))
                     : delta.amount;
                 if (ChangeStat(delta.stat, amount)) return true;
             }
 
-            if (choice.CausesExhaustionNextDay) State.exhaustedTomorrow = true;
+            bool lowScore = choice.LowScoreThreshold > 0f && multiplier < choice.LowScoreThreshold;
+            if (lowScore)
+            {
+                foreach (var delta in choice.LowScoreDeltas)
+                {
+                    if (ChangeStat(delta.stat, delta.amount)) return true;
+                }
+            }
+
+            ChangeStudyDebt(choice.DebtDelta);
+
+            if (choice.CausesExhaustionNextDay || (lowScore && choice.LowScoreCausesExhaustion))
+                State.exhaustedTomorrow = true;
             AdvancePeriod();
             return true;
+        }
+
+        // Hook for the minigames: true when the choice must be played at maximum difficulty.
+        public bool IsMaxDifficultyForced(ChoiceData choice)
+        {
+            return choice != null && choice.ForceMaxDifficulty;
         }
 
         // First game start. The constructor stays silent because nobody can be subscribed yet;
@@ -78,7 +100,8 @@ namespace AmanhaEuEstudo.Core
         }
 
         // Single path for start and restart, so both always announce the same sequence:
-        // [OnGameRestarted] -> OnStatChanged (old == new) per stat -> OnDayStarted(1) -> OnPeriodChanged(Morning).
+        // [OnGameRestarted] -> OnStatChanged (old == new) per stat -> OnStudyDebtChanged(0, 0)
+        // -> OnDayStarted(1) -> OnPeriodChanged(Morning).
         private void BeginNewGame(bool restarted)
         {
             State.Reset(Config);
@@ -89,8 +112,18 @@ namespace AmanhaEuEstudo.Core
                 int value = State.stats[i];
                 OnStatChanged?.Invoke((StatType)i, value, value);
             }
+            OnStudyDebtChanged?.Invoke(State.studyDebt, State.studyDebt);
             OnDayStarted?.Invoke(State.day);
             OnPeriodChanged?.Invoke(State.period);
+        }
+
+        private void ChangeStudyDebt(int amount)
+        {
+            int oldValue = State.studyDebt;
+            int newValue = Math.Max(0, oldValue + amount);
+            if (newValue == oldValue) return;
+            State.studyDebt = newValue;
+            OnStudyDebtChanged?.Invoke(oldValue, newValue);
         }
 
         private void AdvancePeriod()

@@ -15,6 +15,8 @@ namespace AmanhaEuEstudo.Core
         public GamePhase phase = GamePhase.Playing;
         // -1 while there is no burnout; otherwise a StatType value.
         public int burnoutStat = -1;
+        // Study Debt: never below 0, no maximum (the HUD maximum is only visual). Read by combat.
+        public int studyDebt;
 
         public int GetStat(StatType stat)
         {
@@ -34,6 +36,7 @@ namespace AmanhaEuEstudo.Core
             exhaustedTomorrow = false;
             phase = GamePhase.Playing;
             burnoutStat = -1;
+            studyDebt = 0;
         }
     }
 }

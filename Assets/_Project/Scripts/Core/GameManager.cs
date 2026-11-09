@@ -16,6 +16,7 @@ namespace AmanhaEuEstudo.Core
         private GameRules rules;
 
         public event Action<StatType, int, int> OnStatChanged;
+        public event Action<int, int> OnStudyDebtChanged;
         public event Action<TimeOfDay> OnPeriodChanged;
         public event Action<int> OnDayStarted;
         public event Action<int> OnDayEnded;
@@ -44,6 +45,7 @@ namespace AmanhaEuEstudo.Core
             Instance = this;
             rules = new GameRules(config);
             rules.OnStatChanged += (s, o, n) => OnStatChanged?.Invoke(s, o, n);
+            rules.OnStudyDebtChanged += (o, n) => OnStudyDebtChanged?.Invoke(o, n);
             rules.OnPeriodChanged += p => OnPeriodChanged?.Invoke(p);
             rules.OnDayStarted += d => OnDayStarted?.Invoke(d);
             rules.OnDayEnded += d => OnDayEnded?.Invoke(d);
@@ -73,6 +75,12 @@ namespace AmanhaEuEstudo.Core
         public bool ApplyChoice(ChoiceData choice, float performanceMultiplier = 1f)
         {
             return rules != null && rules.ApplyChoice(choice, performanceMultiplier);
+        }
+
+        // Hook for the minigames: true when this choice must be played at maximum difficulty.
+        public bool IsMaxDifficultyForced(ChoiceData choice)
+        {
+            return rules != null && rules.IsMaxDifficultyForced(choice);
         }
 
         public void RestartGame()
