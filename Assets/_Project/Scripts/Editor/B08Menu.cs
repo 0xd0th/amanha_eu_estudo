@@ -324,15 +324,26 @@ namespace AmanhaEuEstudo.EditorTools
                 Debug.LogError("[B08] HUD.prefab não encontrado. Rode antes 'Criar HUD'.");
                 return;
             }
+            // Rebuilt in place: the same path keeps the .meta (and the GUID) of the existing scene.
             if (AssetDatabase.LoadAssetAtPath<SceneAsset>(ScenePath) != null)
             {
-                Debug.Log($"[B08] Pulado (já existe): {ScenePath}");
-                return;
+                if (!EditorUtility.DisplayDialog("Amanhã eu estudo",
+                        $"{ScenePath} já existe. Recriar a cena no mesmo caminho (o GUID é mantido)? " +
+                        "Qualquer alteração manual nela será perdida.", "Recriar", "Cancelar"))
+                {
+                    Debug.Log($"[B08] Cena mantida (cancelado): {ScenePath}");
+                    return;
+                }
             }
             if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
 
             EnsureFolder("Assets/_Project/Scenes");
             Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+
+            // NewScene can unload the assets loaded above (nothing referenced them), which would leave the
+            // GameManager with an empty config. Load them again now that the new scene exists.
+            gameConfig = AssetDatabase.LoadAssetAtPath<GameConfig>(GameConfigPath);
+            hud = AssetDatabase.LoadAssetAtPath<GameObject>(HudPath);
 
             var cam = new GameObject("Main Camera", typeof(Camera));
             cam.tag = "MainCamera";
@@ -345,17 +356,18 @@ namespace AmanhaEuEstudo.EditorTools
             var gso = new SerializedObject(gm.GetComponent<GameManager>());
             gso.FindProperty("config").objectReferenceValue = gameConfig;
             gso.ApplyModifiedPropertiesWithoutUndo();
+            if (gm.GetComponent<GameManager>().Config == null)
+                Debug.LogError("[B08] O GameConfig não foi atribuído ao GameManager da cena. Cena criada sem config.");
 
             PrefabUtility.InstantiatePrefab(hud);
 
-            // DebugHud at the bottom/center so it does not cover the HUD (top corners).
+            // DebugHud at the bottom/center so it does not cover the HUD (top corners). Wider and taller
+            // than before: each choice now has two score buttons. The HUD only occupies the top ~20%.
             var debugHud = new GameObject("DebugHud", typeof(DebugHud));
             var dso = new SerializedObject(debugHud.GetComponent<DebugHud>());
-            dso.FindProperty("panelAnchorMin").vector2Value = new Vector2(0.3f, 0f);
-            dso.FindProperty("panelAnchorMax").vector2Value = new Vector2(0.7f, 0.62f);
+            dso.FindProperty("panelAnchorMin").vector2Value = new Vector2(0.2f, 0f);
+            dso.FindProperty("panelAnchorMax").vector2Value = new Vector2(0.8f, 0.8f);
             dso.ApplyModifiedPropertiesWithoutUndo();
-
-            new GameObject("HudDebugPanel", typeof(HudDebugPanel));
 
             EditorSceneManager.SaveScene(scene, ScenePath);
             Debug.Log($"[B08] Criada: {ScenePath}");

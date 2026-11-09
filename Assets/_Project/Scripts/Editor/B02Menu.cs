@@ -22,28 +22,49 @@ namespace AmanhaEuEstudo.EditorTools
             public ChoiceAvailability availability;
             public bool exhausts;
             public StatDelta[] deltas;
+            // B12
+            public int debtDelta;
+            public float lowScoreThreshold;
+            public StatDelta[] lowScoreDeltas;
+            public bool lowScoreCausesExhaustion;
+            public StatFactor[] gainFactors;
+            public bool forceMaxDifficulty;
         }
 
         private static StatDelta D(StatType s, int a) => new StatDelta(s, a);
+
+        // Same value as Choice_go_to_college: "Ir mesmo cansado" gets it halved by a gain factor.
+        private const int CollegeIntelligence = 4;
 
         // PLACEHOLDER balance values for testing only; real numbers are pending team decision (G03).
         private static readonly ChoiceSpec[] Specs =
         {
             new ChoiceSpec { id = "go_to_college", name = "Ir para a faculdade", periods = PeriodMask.Morning,
                 availability = ChoiceAvailability.RestedOnly,
-                deltas = new[] { D(StatType.Intelligence, 4), D(StatType.Psychological, -2) } },
+                deltas = new[] { D(StatType.Intelligence, CollegeIntelligence), D(StatType.Psychological, -2) } },
             new ChoiceSpec { id = "go_tired", name = "Ir mesmo cansado", periods = PeriodMask.Morning,
                 availability = ChoiceAvailability.ExhaustedOnly,
-                deltas = new[] { D(StatType.Intelligence, 2), D(StatType.Health, -5), D(StatType.Psychological, -5) } },
+                deltas = new[] { D(StatType.Intelligence, CollegeIntelligence), D(StatType.Health, -5), D(StatType.Psychological, -5) },
+                gainFactors = new[] { new StatFactor(StatType.Intelligence, B12Menu.GoTiredIntelligenceFactor) },
+                forceMaxDifficulty = true },
             new ChoiceSpec { id = "skip_and_sleep", name = "Faltar e dormir", periods = PeriodMask.Morning,
                 availability = ChoiceAvailability.ExhaustedOnly,
-                deltas = new[] { D(StatType.Health, 8), D(StatType.Psychological, 3), D(StatType.Intelligence, -5) } },
+                deltas = new[] { D(StatType.Health, B12Menu.SkipAndSleepHealth), D(StatType.Psychological, 3), D(StatType.Intelligence, -5) },
+                debtDelta = B12Menu.SkipAndSleepDebt },
             new ChoiceSpec { id = "gym", name = "Academia", periods = PeriodMask.Afternoon | PeriodMask.Night,
                 deltas = new[] { D(StatType.Health, 12), D(StatType.Psychological, -3) } },
             new ChoiceSpec { id = "study", name = "Estudar", periods = PeriodMask.Afternoon | PeriodMask.Night,
                 deltas = new[] { D(StatType.Intelligence, 12), D(StatType.Psychological, -6), D(StatType.Health, -3) } },
             new ChoiceSpec { id = "memes", name = "Ver memes (amanhã eu estudo)", periods = PeriodMask.Afternoon | PeriodMask.Night,
-                deltas = new[] { D(StatType.Psychological, 8), D(StatType.Intelligence, -2) } },
+                deltas = new[] { D(StatType.Psychological, 8), D(StatType.Intelligence, -2) },
+                debtDelta = B12Menu.MemesDebt,
+                lowScoreThreshold = B12Menu.MemesLowScoreThreshold,
+                lowScoreDeltas = new[]
+                {
+                    D(StatType.Psychological, B12Menu.MemesLowScorePsychological),
+                    D(StatType.Intelligence, B12Menu.MemesLowScoreIntelligence),
+                },
+                lowScoreCausesExhaustion = true },
             new ChoiceSpec { id = "friends", name = "Sair com amigos", periods = PeriodMask.Afternoon | PeriodMask.Night,
                 deltas = new[] { D(StatType.Psychological, 12), D(StatType.Health, -3), D(StatType.Intelligence, -3) } },
             new ChoiceSpec { id = "sleep_early", name = "Dormir cedo", periods = PeriodMask.Night,
@@ -74,7 +95,9 @@ namespace AmanhaEuEstudo.EditorTools
                     continue;
                 }
                 var choice = ScriptableObject.CreateInstance<ChoiceData>();
-                choice.Setup(spec.id, spec.name, spec.periods, spec.availability, spec.deltas, spec.exhausts);
+                choice.Setup(spec.id, spec.name, spec.periods, spec.availability, spec.deltas, spec.exhausts,
+                    spec.debtDelta, spec.lowScoreThreshold, spec.lowScoreDeltas, spec.lowScoreCausesExhaustion,
+                    spec.gainFactors, spec.forceMaxDifficulty);
                 AssetDatabase.CreateAsset(choice, path);
                 choices.Add(choice);
                 Debug.Log($"[B02] Criado: {path}");
@@ -119,6 +142,8 @@ namespace AmanhaEuEstudo.EditorTools
 
             EnsureFolder("Assets/_Project/Scenes");
             Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+            // NewScene can unload assets loaded before it; load the config again.
+            config = AssetDatabase.LoadAssetAtPath<GameConfig>(ConfigPath);
 
             var cam = new GameObject("Main Camera", typeof(Camera));
             cam.tag = "MainCamera";
