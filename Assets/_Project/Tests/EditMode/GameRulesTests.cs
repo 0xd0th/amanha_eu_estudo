@@ -18,6 +18,18 @@ namespace AmanhaEuEstudo.Tests
             return c;
         }
 
+        // Full B12 choice (debt, low score, gain factors, forced difficulty).
+        private ChoiceData Rich(string id, PeriodMask periods, ChoiceAvailability availability, StatDelta[] deltas,
+            bool exhausts = false, int debt = 0, float lowThreshold = 0f, StatDelta[] lowDeltas = null,
+            bool lowExhausts = false, StatFactor[] factors = null, bool forceMax = false)
+        {
+            var c = ScriptableObject.CreateInstance<ChoiceData>();
+            c.Setup(id, id, periods, availability, deltas, exhausts, debt, lowThreshold, lowDeltas, lowExhausts,
+                factors, forceMax);
+            created.Add(c);
+            return c;
+        }
+
         private ChoiceData Neutral(string id, PeriodMask periods)
         {
             return Choice(id, periods, ChoiceAvailability.Always);
@@ -325,6 +337,7 @@ namespace AmanhaEuEstudo.Tests
             var log = new List<string>();
             rules.OnGameRestarted += () => log.Add("Restarted");
             rules.OnStatChanged += (s, o, n) => log.Add($"Stat:{s}:{o}->{n}");
+            rules.OnStudyDebtChanged += (o, n) => log.Add($"Debt:{o}->{n}");
             rules.OnDayStarted += d => log.Add($"Day:{d}");
             rules.OnPeriodChanged += p => log.Add($"Period:{p}");
             return log;
@@ -333,7 +346,7 @@ namespace AmanhaEuEstudo.Tests
         private static readonly string[] InitialSequence =
         {
             "Stat:Health:60->60", "Stat:Intelligence:60->60", "Stat:Psychological:60->60",
-            "Day:1", "Period:Morning",
+            "Debt:0->0", "Day:1", "Period:Morning",
         };
 
         private static void AssertInitialState(GameRules rules)
@@ -448,6 +461,343 @@ namespace AmanhaEuEstudo.Tests
 
             Assert.AreEqual(50, old[(int)StatType.Health]);
             Assert.AreEqual(60, rules.State.GetStat(StatType.Health));
+        }
+    
+        // ================= B12: study debt, low score, gain factors =================
+
+        private static readonly StatDelta[] None = new StatDelta[0];
+
+        private ChoiceData DebtChoice(int debt)
+        {
+            return Rich("debt" + debt, PeriodMask.All, ChoiceAvailability.Always, None, debt: debt);
+        }
+
+        // ---- Study debt ----
+
+        [Test]
+        public void Debt_StartsAtZero_AndAdds()
+        {
+            var plus3 = DebtChoice(3);
+            var rules = Rules(14, NoDecay, plus3);
+            Assert.AreEqual(0, rules.State.studyDebt);
+            rules.ApplyChoice(plus3);
+            Assert.AreEqual(3, rules.State.studyDebt);
+            rules.ApplyChoice(plus3);
+            Assert.AreEqual(6, rules.State.studyDebt);
+        }
+
+        [Test]
+        public void Debt_NeverGoesBelowZero()
+        {
+            var minus5 = DebtChoice(-5);
+            var plus2 = DebtChoice(2);
+            var rules = Rules(14, NoDecay, minus5, plus2);
+            rules.ApplyChoice(minus5);
+            Assert.AreEqual(0, rules.State.studyDebt);
+            rules.ApplyChoice(plus2);
+            rules.ApplyChoice(minus5);
+            Assert.AreEqual(0, rules.State.studyDebt);
+        }
+
+        [Test]
+        public void Debt_HasNoMaximum()
+        {
+            var huge = DebtChoice(1000);
+            var rules = Rules(14, NoDecay, huge);
+            rules.ApplyChoice(huge);
+            Assert.AreEqual(1000, rules.State.studyDebt);
+        }
+
+        [Test]
+        public void Debt_ResetsOnRestart()
+        {
+            var plus3 = DebtChoice(3);
+            var rules = Rules(14, NoDecay, plus3);
+            rules.ApplyChoice(plus3);
+            rules.Restart();
+            Assert.AreEqual(0, rules.State.studyDebt);
+        }
+
+        [Test]
+        public void Debt_EventFiresOnlyWhenTheValueChanges()
+        {
+            var plus2 = DebtChoice(2);
+            var zero = DebtChoice(0);
+            var minus9 = DebtChoice(-9);
+            var rules = Rules(14, NoDecay, plus2, zero, minus9);
+            var log = new List<string>();
+            rules.OnStudyDebtChanged += (o, n) => log.Add($"{o}->{n}");
+
+            rules.ApplyChoice(zero);   // 0 -> 0: silent
+            rules.ApplyChoice(minus9); // clamped at 0: silent
+            Assert.IsEmpty(log);
+
+            rules.ApplyChoice(plus2);
+            rules.ApplyChoice(minus9); // 2 -> 0
+            CollectionAssert.AreEqual(new[] { "0->2", "2->0" }, log);
+        }
+
+        [Test]
+        public void Debt_BeginNewGame_AnnouncesZeroZero_EvenAfterDebtWasAccumulated()
+        {
+            var plus3 = DebtChoice(3);
+            var rules = Rules(14, NoDecay, plus3);
+            rules.ApplyChoice(plus3);
+            var log = new List<string>();
+            rules.OnStudyDebtChanged += (o, n) => log.Add($"{o}->{n}");
+            rules.Restart();
+            CollectionAssert.AreEqual(new[] { "0->0" }, log);
+        }
+
+        [Test]
+        public void Debt_InitialEvent_ComesAfterTheBarsAndBeforeTheFirstDay()
+        {
+            var rules = Rules(14, NoDecay, Neutral("n", PeriodMask.All));
+            var log = Record(rules);
+            rules.StartGame();
+            int lastStat = log.FindLastIndex(e => e.StartsWith("Stat:"));
+            int debt = log.IndexOf("Debt:0->0");
+            int day = log.IndexOf("Day:1");
+            Assert.Greater(debt, lastStat);
+            Assert.Less(debt, day);
+        }
+
+        // ---- Burnout in the middle of a choice ----
+
+        [Test]
+        public void Burnout_InNormalDeltas_AppliesNeitherDebtNorExhaustion()
+        {
+            var bad = Rich("bad", PeriodMask.All, ChoiceAvailability.Always,
+                new[] { new StatDelta(StatType.Health, -999) }, exhausts: true, debt: 2,
+                lowThreshold: 0.5f, lowExhausts: true);
+            var rules = Rules(14, NoDecay, bad);
+            rules.ApplyChoice(bad, 0f);
+            Assert.AreEqual(GamePhase.GameOver, rules.State.phase);
+            Assert.AreEqual(0, rules.State.studyDebt);
+            Assert.IsFalse(rules.State.exhaustedTomorrow);
+        }
+
+        [Test]
+        public void Burnout_InLowScoreDeltas_AppliesNeitherDebtNorExhaustion()
+        {
+            var bad = Rich("bad", PeriodMask.All, ChoiceAvailability.Always, None, debt: 2,
+                lowThreshold: 0.5f, lowDeltas: new[] { new StatDelta(StatType.Intelligence, -999) },
+                lowExhausts: true);
+            var rules = Rules(14, NoDecay, bad);
+            rules.ApplyChoice(bad, 0.3f);
+            Assert.AreEqual(GamePhase.GameOver, rules.State.phase);
+            Assert.AreEqual(0, rules.State.studyDebt);
+            Assert.IsFalse(rules.State.exhaustedTomorrow);
+        }
+
+        // ---- Low score ----
+
+        private ChoiceData Memes(float threshold = 0.5f, bool lowExhausts = true)
+        {
+            return Rich("memes", PeriodMask.All, ChoiceAvailability.Always,
+                new[] { new StatDelta(StatType.Psychological, 8), new StatDelta(StatType.Intelligence, -2) },
+                debt: 1, lowThreshold: threshold,
+                lowDeltas: new[] { new StatDelta(StatType.Psychological, 6), new StatDelta(StatType.Intelligence, -6) },
+                lowExhausts: lowExhausts);
+        }
+
+        [Test]
+        public void LowScore_BelowThreshold_AddsExtraDeltasWithoutMultiplier_AndMarksExhaustedTomorrow()
+        {
+            var memes = Memes();
+            var rules = Rules(14, NoDecay, memes);
+            rules.ApplyChoice(memes, 0.3f);
+            // Psychological: 60 + round(8 x 0.3) = 62, + 6 (extra, unscaled) = 68.
+            Assert.AreEqual(68, rules.State.GetStat(StatType.Psychological));
+            // Intelligence: 60 - 2 (cost, unscaled) - 6 (extra) = 52.
+            Assert.AreEqual(52, rules.State.GetStat(StatType.Intelligence));
+            Assert.AreEqual(1, rules.State.studyDebt);
+            Assert.IsTrue(rules.State.exhaustedTomorrow);
+        }
+
+        [Test]
+        public void LowScore_AtExactThreshold_DoesNotApply()
+        {
+            var memes = Memes();
+            var rules = Rules(14, NoDecay, memes);
+            rules.ApplyChoice(memes, 0.5f);
+            Assert.AreEqual(64, rules.State.GetStat(StatType.Psychological)); // 60 + round(8 x 0.5)
+            Assert.AreEqual(58, rules.State.GetStat(StatType.Intelligence));   // 60 - 2
+            Assert.IsFalse(rules.State.exhaustedTomorrow);
+        }
+
+        [Test]
+        public void LowScore_AboveThreshold_DoesNotApply()
+        {
+            var memes = Memes();
+            var rules = Rules(14, NoDecay, memes);
+            rules.ApplyChoice(memes, 1f);
+            Assert.AreEqual(68, rules.State.GetStat(StatType.Psychological)); // 60 + 8
+            Assert.AreEqual(58, rules.State.GetStat(StatType.Intelligence));
+            Assert.IsFalse(rules.State.exhaustedTomorrow);
+        }
+
+        [Test]
+        public void LowScore_ThresholdZero_IsOff_EvenWithAZeroScore()
+        {
+            var memes = Memes(threshold: 0f);
+            var rules = Rules(14, NoDecay, memes);
+            rules.ApplyChoice(memes, 0f);
+            Assert.AreEqual(60, rules.State.GetStat(StatType.Psychological)); // gain scaled to 0, no extra
+            Assert.AreEqual(58, rules.State.GetStat(StatType.Intelligence));
+            Assert.IsFalse(rules.State.exhaustedTomorrow);
+        }
+
+        [Test]
+        public void LowScore_WithoutTheExhaustionFlag_DoesNotMarkExhaustedTomorrow()
+        {
+            var memes = Memes(lowExhausts: false);
+            var rules = Rules(14, NoDecay, memes);
+            rules.ApplyChoice(memes, 0.3f);
+            Assert.AreEqual(68, rules.State.GetStat(StatType.Psychological));
+            Assert.IsFalse(rules.State.exhaustedTomorrow);
+        }
+
+        [Test]
+        public void LowScoreExhaustion_AppliesOnlyTomorrow_AndLastsOneDay()
+        {
+            var neutral = Neutral("n", PeriodMask.All);
+            var memes = Rich("memes", PeriodMask.Night, ChoiceAvailability.Always, None,
+                lowThreshold: 0.5f, lowExhausts: true);
+            var rules = Rules(14, NoDecay, neutral, memes);
+
+            rules.ApplyChoice(neutral); // morning
+            rules.ApplyChoice(neutral); // afternoon
+            Assert.IsFalse(rules.State.exhaustedToday);
+            rules.ApplyChoice(memes, 0.3f); // night, low score
+
+            Assert.AreEqual(2, rules.State.day);
+            Assert.IsTrue(rules.State.exhaustedToday);
+            Assert.IsFalse(rules.State.exhaustedTomorrow);
+
+            rules.ApplyChoice(neutral); // morning
+            rules.ApplyChoice(neutral); // afternoon
+            rules.ApplyChoice(neutral); // night: closes day 2 (neutral is available at night too)
+            Assert.AreEqual(3, rules.State.day);
+            Assert.IsFalse(rules.State.exhaustedToday);
+        }
+
+        // ---- Gain factors ----
+
+        [Test]
+        public void GainFactors_ScaleOnlyGains()
+        {
+            var tired = Rich("tired", PeriodMask.All, ChoiceAvailability.Always,
+                new[] { new StatDelta(StatType.Intelligence, 4), new StatDelta(StatType.Health, -10) },
+                factors: new[] { new StatFactor(StatType.Intelligence, 0.5f), new StatFactor(StatType.Health, 0.5f) });
+            var rules = Rules(14, NoDecay, tired);
+            rules.ApplyChoice(tired);
+            Assert.AreEqual(62, rules.State.GetStat(StatType.Intelligence)); // 60 + 4 x 0.5
+            Assert.AreEqual(50, rules.State.GetStat(StatType.Health));       // cost untouched by the factor
+        }
+
+        [Test]
+        public void GainFactors_AbsentStatMeansFactorOne()
+        {
+            var c = Rich("c", PeriodMask.All, ChoiceAvailability.Always,
+                new[] { new StatDelta(StatType.Health, 10), new StatDelta(StatType.Intelligence, 10) },
+                factors: new[] { new StatFactor(StatType.Intelligence, 0.5f) });
+            var rules = Rules(14, NoDecay, c);
+            rules.ApplyChoice(c);
+            Assert.AreEqual(70, rules.State.GetStat(StatType.Health));
+            Assert.AreEqual(65, rules.State.GetStat(StatType.Intelligence));
+        }
+
+        [Test]
+        public void GainFactors_RoundOnce_BasePerformanceAndFactorTogether()
+        {
+            // 5 x 0.5 x 1.2 = 3.0 -> 3 with a single rounding.
+            // Rounding in two steps would give round(2.5) = 2, then 2 x 1.2 = 2.4 -> 2.
+            var c = Rich("c", PeriodMask.All, ChoiceAvailability.Always,
+                new[] { new StatDelta(StatType.Intelligence, 5) },
+                factors: new[] { new StatFactor(StatType.Intelligence, 1.2f) });
+            var rules = Rules(14, NoDecay, c);
+            rules.ApplyChoice(c, 0.5f);
+            Assert.AreEqual(63, rules.State.GetStat(StatType.Intelligence));
+        }
+
+        [Test]
+        public void GainFactors_NoFactor_KeepsTheOldBehavior()
+        {
+            var c = Rich("c", PeriodMask.All, ChoiceAvailability.Always,
+                new[] { new StatDelta(StatType.Health, 7) });
+            var rules = Rules(14, NoDecay, c);
+            rules.ApplyChoice(c, 0.6f);
+            Assert.AreEqual(60 + Mathf.RoundToInt(7 * 0.6f), rules.State.GetStat(StatType.Health));
+        }
+
+        // ---- Forced difficulty ----
+
+        [Test]
+        public void IsMaxDifficultyForced_FollowsTheFlag()
+        {
+            var forced = Rich("f", PeriodMask.All, ChoiceAvailability.Always, None, forceMax: true);
+            var normal = Rich("n", PeriodMask.All, ChoiceAvailability.Always, None);
+            var rules = Rules(14, NoDecay, forced, normal);
+            Assert.IsTrue(rules.IsMaxDifficultyForced(forced));
+            Assert.IsFalse(rules.IsMaxDifficultyForced(normal));
+            Assert.IsFalse(rules.IsMaxDifficultyForced(null));
+        }
+
+        // ---- Order of application ----
+
+        [Test]
+        public void ApplyChoice_AppliesDeltasThenLowScoreThenDebt_InThatOrder()
+        {
+            var c = Rich("c", PeriodMask.All, ChoiceAvailability.Always,
+                new[] { new StatDelta(StatType.Health, -1) }, debt: 1,
+                lowThreshold: 0.5f, lowDeltas: new[] { new StatDelta(StatType.Health, -2) });
+            var rules = Rules(14, NoDecay, c);
+            var log = new List<string>();
+            rules.OnStatChanged += (s, o, n) => log.Add($"Stat:{o}->{n}");
+            rules.OnStudyDebtChanged += (o, n) => log.Add($"Debt:{o}->{n}");
+            rules.OnPeriodChanged += p => log.Add($"Period:{p}");
+            rules.ApplyChoice(c, 0.1f);
+            CollectionAssert.AreEqual(new[] { "Stat:60->59", "Stat:59->57", "Debt:0->1", "Period:Afternoon" }, log);
+        }
+
+        // ---- Full flow ----
+
+        [Test]
+        public void Flow_MemesWithLowScore_ThenSkipAndSleep_AddsDebtAndHealth()
+        {
+            var neutral = Rich("n", PeriodMask.Morning | PeriodMask.Afternoon, ChoiceAvailability.Always, None);
+            var memes = Rich("memes", PeriodMask.Night, ChoiceAvailability.Always,
+                new[] { new StatDelta(StatType.Psychological, 8), new StatDelta(StatType.Intelligence, -2) },
+                debt: 1, lowThreshold: 0.5f,
+                lowDeltas: new[] { new StatDelta(StatType.Psychological, 6), new StatDelta(StatType.Intelligence, -6) },
+                lowExhausts: true);
+            var college = Rich("college", PeriodMask.Morning, ChoiceAvailability.RestedOnly, None);
+            var goTired = Rich("go_tired", PeriodMask.Morning, ChoiceAvailability.ExhaustedOnly,
+                new[] { new StatDelta(StatType.Intelligence, 4) },
+                factors: new[] { new StatFactor(StatType.Intelligence, 0.5f) }, forceMax: true);
+            var skip = Rich("skip_and_sleep", PeriodMask.Morning, ChoiceAvailability.ExhaustedOnly,
+                new[] { new StatDelta(StatType.Health, 15) }, debt: 1);
+            var rules = Rules(14, NoDecay, neutral, memes, college, goTired, skip);
+
+            rules.ApplyChoice(neutral);
+            rules.ApplyChoice(neutral);
+            rules.ApplyChoice(memes, 0.3f);
+
+            Assert.AreEqual(1, rules.State.studyDebt);
+            Assert.AreEqual(2, rules.State.day);
+            Assert.IsTrue(rules.State.exhaustedToday);
+
+            var available = rules.GetAvailableChoices();
+            CollectionAssert.Contains(available, goTired);
+            CollectionAssert.Contains(available, skip);
+            CollectionAssert.DoesNotContain(available, college);
+            Assert.IsTrue(rules.IsMaxDifficultyForced(goTired));
+
+            int healthBefore = rules.State.GetStat(StatType.Health);
+            rules.ApplyChoice(skip);
+            Assert.AreEqual(healthBefore + 15, rules.State.GetStat(StatType.Health));
+            Assert.AreEqual(2, rules.State.studyDebt);
         }
     }
 }
