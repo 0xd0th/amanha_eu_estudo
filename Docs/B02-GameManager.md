@@ -50,8 +50,9 @@ Início e reinício passam pelo mesmo método (`GameRules.BeginNewGame`), então
 |---|---|---|
 | 1 | | `OnGameRestarted` |
 | 2 | `OnStatChanged` de cada barra, na ordem do enum | idem |
-| 3 | `OnDayStarted(1)` | idem |
-| 4 | `OnPeriodChanged(Morning)` | idem |
+| 3 | `OnStudyDebtChanged(0, 0)` (B12) | idem |
+| 4 | `OnDayStarted(1)` | idem |
+| 5 | `OnPeriodChanged(Morning)` | idem |
 
 `OnStatChanged` no início/reinício vem com `old == new` (o valor inicial do `GameConfig`): é um aviso de "valor definido", não uma mudança.
 

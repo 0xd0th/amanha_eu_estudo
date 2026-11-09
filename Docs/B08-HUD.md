@@ -5,7 +5,6 @@
 ```
 Assets/_Project/
   Scripts/UI/          AmanhaEuEstudo.UI  (refs: Core, UnityEngine.UI, Unity.TextMeshPro)
-  Scripts/DebugTools/  + HudDebugPanel (agora referencia UI)
   Scripts/Editor/      + B08Menu (agora referencia UI, UnityEngine.UI, Unity.TextMeshPro)
   Art/UI/HUD/Placeholder/   PNGs placeholder + white_pixel.png (gerado pelo menu)
   Data/HudConfig.asset      (gerado pelo menu)
@@ -31,6 +30,7 @@ Dependências: `Core` (sem referências) ← `UI` ← `DebugTools` ← `EditorTo
 
 - `OnStatChanged(stat, old, new)` → `GetBar(stat).AnimateTo(new)` e atualiza o retrato.
 - `OnDayStarted` / `OnPeriodChanged` → calendário e período.
+- `OnStudyDebtChanged(old, new)` (B12) → `DebtPileView.SetDebt(new)` (anima); com old == new é o valor inicial e usa `SetDebtInstant`. O débito vem do Core (`State.studyDebt`), não há mais fonte de débito no HUD.
 - `OnGameRestarted` → relê `State` e aplica tudo sem animar. Os `OnStatChanged` com old == new que vêm em seguida não animam nada.
 
 `StatBarView` e `DebtPileView` animam com `Time.unscaledDeltaTime` (funcionam com o jogo pausado). O número da barra segue o valor animado. Abaixo de `lowThreshold` (25) a barra pisca/escurece (cor + ícone + número: nunca só cor).
@@ -41,7 +41,7 @@ Nomes das barras: só `DisplayNames.Of(StatType)`. `StatBarView.nameText` (opcio
 
 - **`StatBar.prefab`**: pode ser usado sozinho (menu de pausa, tela de resultado do minigame). Chame `Configure(HudConfig, StatType, min, max)` e depois `SetInstant(v)` / `AnimateTo(v)`. `OnFillAnimationCompleted` dispara ao fim de cada `AnimateTo` (imediatamente se não havia o que animar).
 - **`HudView.GetBar(StatType)`** e **`HudView.DebtPile`** para outros sistemas.
-- **`DebtPileView.SetDebt(int)`** (animado) e `SetDebtInstant(int)`: é onde o card do Débito de Estudo se conecta. O débito **não** existe no Core nem no `GameState`.
+- **`DebtPileView.SetDebt(int)`** (animado) e `SetDebtInstant(int)`: o `HudView` chama esses métodos a partir de `OnStudyDebtChanged` (B12). Outros sistemas não devem chamá-los: o débito real é `State.studyDebt`.
 - Eventos críticos abaixo de 25 (diálogo, dificuldade), pausa, resultado do minigame e Burnout: fora do escopo; o `lowThreshold` e `GetBar` são os ganchos.
 
 ## Trocar placeholders pela arte definitiva
@@ -52,7 +52,7 @@ Só trocar os sprites no `HudConfig` (ícones por barra, estados do retrato) e, 
 
 - **Configurar sprites do HUD**: gera `white_pixel.png` (se não existir) e ajusta a importação da pasta Placeholder: Sprite (Single), Point, sem compressão, sem mipmaps.
 - **Criar HUD**: checa os TMP Essentials e os 6 sprites antes de criar qualquer coisa (se faltar algo, loga erro e aborta). Cria `HudConfig.asset`, `StatBar.prefab` e `HUD.prefab`. Nunca sobrescreve: se já existir, loga e pula (apague o asset para regenerar).
-- **Criar cena de teste do HUD**: `B08_HudTestScene.unity` com GameManager, HUD, `DebugHud` (movido para centro/embaixo) e `HudDebugPanel` (Débito +1 / −1 / zerar, canto inferior esquerdo).
+- **Criar cena de teste do HUD**: `B08_HudTestScene.unity` com GameManager, HUD, `DebugHud` (movido para centro/embaixo). O `HudDebugPanel` (botões de débito) saiu no B12: o débito agora nasce das escolhas. Se a cena já existia, o menu pede confirmação e a recria no mesmo caminho (mantém o GUID).
 
 Canvas: Screen Space - Overlay, Scale With Screen Size 1920x1080, match 0,5, `pixelPerfect` ligado, sem `GraphicRaycaster`, `raycastTarget = false` em tudo: o HUD nunca bloqueia clique.
 
@@ -60,7 +60,7 @@ Canvas: Screen Space - Overlay, Scale With Screen Size 1920x1080, match 0,5, `pi
 
 1. `Tools > Amanhã eu estudo > Criar dados de exemplo` (se ainda não rodou o B02).
 2. `Configurar sprites do HUD`, `Criar HUD`, `Criar cena de teste do HUD`.
-3. Abrir `B08_HudTestScene` e dar Play. Clicar nas escolhas e ver barras e números animando juntos, o retrato mudando de tint ao baixar a menor barra, o calendário (14 → 13 ...) e o período. Os botões de débito enchem/esvaziam a pilha. "Reiniciar" volta tudo sem animar.
+3. Abrir `B08_HudTestScene` e dar Play. Clicar nas escolhas e ver barras e números animando juntos, o retrato mudando de tint ao baixar a menor barra, o calendário (14 → 13 ...) e o período. Escolhas com débito (ver B12) enchem a pilha. "Reiniciar" volta tudo sem animar.
 4. Testes: `Window > General > Test Runner > EditMode > Run All`.
 
 ## Decisões pendentes (G03)
