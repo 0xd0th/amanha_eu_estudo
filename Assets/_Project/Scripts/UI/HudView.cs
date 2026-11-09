@@ -36,6 +36,7 @@ namespace AmanhaEuEstudo.UI
 
             ConfigureViews();
             manager.OnStatChanged += HandleStatChanged;
+            manager.OnStudyDebtChanged += HandleStudyDebtChanged;
             manager.OnDayStarted += HandleDayStarted;
             manager.OnPeriodChanged += HandlePeriodChanged;
             manager.OnGameRestarted += ApplyStateInstant;
@@ -46,6 +47,7 @@ namespace AmanhaEuEstudo.UI
         {
             if (manager == null) return;
             manager.OnStatChanged -= HandleStatChanged;
+            manager.OnStudyDebtChanged -= HandleStudyDebtChanged;
             manager.OnDayStarted -= HandleDayStarted;
             manager.OnPeriodChanged -= HandlePeriodChanged;
             manager.OnGameRestarted -= ApplyStateInstant;
@@ -69,6 +71,7 @@ namespace AmanhaEuEstudo.UI
 
             for (int i = 0; i < bars.Length; i++)
                 if (bars[i] != null) bars[i].SetInstant(state.GetStat(bars[i].Stat));
+            if (debtPile != null) debtPile.SetDebtInstant(state.studyDebt);
             if (calendar != null)
             {
                 calendar.SetDay(state.day, manager.Config.TotalDays);
@@ -82,6 +85,14 @@ namespace AmanhaEuEstudo.UI
             var bar = GetBar(stat);
             if (bar != null) bar.AnimateTo(newValue);
             if (portrait != null && manager.State != null) portrait.Refresh(manager.State.stats);
+        }
+
+        // old == new is the initial value announced by the Core (same convention as the bars): no animation.
+        private void HandleStudyDebtChanged(int oldValue, int newValue)
+        {
+            if (debtPile == null) return;
+            if (oldValue == newValue) debtPile.SetDebtInstant(newValue);
+            else debtPile.SetDebt(newValue);
         }
 
         private void HandleDayStarted(int day)

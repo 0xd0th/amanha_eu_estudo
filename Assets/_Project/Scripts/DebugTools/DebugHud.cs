@@ -22,6 +22,10 @@ namespace AmanhaEuEstudo.DebugTools
         [SerializeField] private Vector2 panelAnchorMin = Vector2.zero;
         [SerializeField] private Vector2 panelAnchorMax = Vector2.one;
 
+        [Header("Scores sent to ApplyChoice by the two buttons of each choice")]
+        [SerializeField] private float normalScore = 1f;
+        [SerializeField] private float lowScore = 0.3f;
+
         private void Awake()
         {
             font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
@@ -38,6 +42,7 @@ namespace AmanhaEuEstudo.DebugTools
                 return;
             }
             manager.OnStatChanged += OnStatChanged;
+            manager.OnStudyDebtChanged += OnDebtChanged;
             manager.OnPeriodChanged += OnAnyChange;
             manager.OnDayStarted += OnAnyChange;
             manager.OnBurnout += OnBurnout;
@@ -50,6 +55,7 @@ namespace AmanhaEuEstudo.DebugTools
         {
             if (manager == null) return;
             manager.OnStatChanged -= OnStatChanged;
+            manager.OnStudyDebtChanged -= OnDebtChanged;
             manager.OnPeriodChanged -= OnAnyChange;
             manager.OnDayStarted -= OnAnyChange;
             manager.OnBurnout -= OnBurnout;
@@ -66,6 +72,7 @@ namespace AmanhaEuEstudo.DebugTools
         }
 
         private void OnStatChanged(StatType s, int o, int n) { dirty = true; }
+        private void OnDebtChanged(int o, int n) { dirty = true; }
         private void OnAnyChange(TimeOfDay p) { dirty = true; }
         private void OnAnyChange(int d) { dirty = true; }
         private void OnFinalDay() { dirty = true; }
@@ -92,6 +99,7 @@ namespace AmanhaEuEstudo.DebugTools
                 var stat = (StatType)i;
                 sb.AppendLine($"{DisplayNames.Of(stat)}: {state.GetStat(stat)}");
             }
+            sb.AppendLine($"Débito: {state.studyDebt}   |   Exausto: hoje {YesNo(state.exhaustedToday)} · amanhã {YesNo(state.exhaustedTomorrow)}");
             statusText.text = sb.ToString();
 
             if (state.phase == GamePhase.FinalDayReached)
@@ -107,16 +115,23 @@ namespace AmanhaEuEstudo.DebugTools
             foreach (var choice in manager.GetAvailableChoices())
             {
                 var captured = choice;
-                CreateButton(choicesRoot, Describe(choice), () => manager.ApplyChoice(captured));
+                CreateChoiceRow(choicesRoot, Describe(choice),
+                    $"nota normal ({normalScore:0.0})", () => manager.ApplyChoice(captured, normalScore),
+                    $"nota baixa ({lowScore:0.0})", () => manager.ApplyChoice(captured, lowScore));
             }
         }
 
-        private static string Describe(ChoiceData choice)
+        private static string YesNo(bool value) => value ? "sim" : "não";
+
+        private string Describe(ChoiceData choice)
         {
             var sb = new StringBuilder(choice.DisplayName);
             foreach (var d in choice.Deltas)
                 sb.Append($"  [{DisplayNames.Of(d.stat)} {d.amount:+#;-#;0}]");
+            if (choice.DebtDelta != 0) sb.Append($"  [débito {choice.DebtDelta:+#;-#;0}]");
+            if (choice.LowScoreThreshold > 0f) sb.Append($"  [nota < {choice.LowScoreThreshold:0.0#}: extra]");
             if (choice.CausesExhaustionNextDay) sb.Append("  (exausto amanhã)");
+            if (manager.IsMaxDifficultyForced(choice)) sb.Append("  [dificuldade máxima]");
             return sb.ToString();
         }
 
@@ -157,8 +172,8 @@ namespace AmanhaEuEstudo.DebugTools
             layout.childForceExpandWidth = true;
             layout.childForceExpandHeight = false;
 
-            statusText = CreateText(panel.transform, 26, Color.white, 130);
-            messageText = CreateText(panel.transform, 28, new Color(1f, 0.4f, 0.4f), 50);
+            statusText = CreateText(panel.transform, 22, Color.white, 140);
+            messageText = CreateText(panel.transform, 24, new Color(1f, 0.4f, 0.4f), 34);
 
             var choices = new GameObject("Choices", typeof(RectTransform), typeof(VerticalLayoutGroup));
             choices.transform.SetParent(panel.transform, false);
@@ -185,6 +200,48 @@ namespace AmanhaEuEstudo.DebugTools
             t.horizontalOverflow = HorizontalWrapMode.Wrap;
             go.GetComponent<LayoutElement>().preferredHeight = height;
             return t;
+        }
+
+        // One row per choice: description on the left, one button per score on the right.
+        private void CreateChoiceRow(Transform parent, string description, string normalLabel,
+            UnityEngine.Events.UnityAction onNormal, string lowLabel, UnityEngine.Events.UnityAction onLow)
+        {
+            var row = new GameObject("ChoiceRow", typeof(RectTransform), typeof(HorizontalLayoutGroup), typeof(LayoutElement));
+            row.transform.SetParent(parent, false);
+            row.GetComponent<LayoutElement>().preferredHeight = 40;
+            var h = row.GetComponent<HorizontalLayoutGroup>();
+            h.spacing = 6;
+            h.childControlWidth = true;
+            h.childControlHeight = true;
+            h.childForceExpandWidth = false;
+            h.childForceExpandHeight = true;
+
+            var textGo = new GameObject("Description", typeof(RectTransform), typeof(Text), typeof(LayoutElement));
+            textGo.transform.SetParent(row.transform, false);
+            var t = textGo.GetComponent<Text>();
+            t.font = font;
+            t.fontSize = 14;
+            t.color = Color.white;
+            t.alignment = TextAnchor.MiddleLeft;
+            t.horizontalOverflow = HorizontalWrapMode.Wrap;
+            t.verticalOverflow = VerticalWrapMode.Truncate;
+            t.text = description;
+            t.raycastTarget = false;
+            textGo.GetComponent<LayoutElement>().flexibleWidth = 1;
+
+            CreateRowButton(row.transform, normalLabel, onNormal);
+            CreateRowButton(row.transform, lowLabel, onLow);
+        }
+
+        private void CreateRowButton(Transform parent, string label, UnityEngine.Events.UnityAction onClick)
+        {
+            var button = CreateButton(parent, label, onClick);
+            var le = button.GetComponent<LayoutElement>();
+            le.preferredHeight = -1;
+            le.preferredWidth = 150;
+            var text = button.GetComponentInChildren<Text>();
+            text.fontSize = 15;
+            text.alignment = TextAnchor.MiddleCenter;
         }
 
         private Button CreateButton(Transform parent, string label, UnityEngine.Events.UnityAction onClick)
