@@ -23,6 +23,16 @@ public class PauseManager : MonoBehaviour
     public Sprite spriteRaioNormal;
     public Sprite spriteRaioDaltonico;
 
+    [Header("Paleta de Cores UI (Acessibilidade)")]
+    public Color corFundoNormal = new Color(0f, 0f, 0f, 0.7f);
+    public Color corTextoNormal = Color.white;
+    public Color corFundoDaltonico = new Color(0.05f, 0.15f, 0.3f, 0.95f);
+    public Color corTextoDaltonico = Color.yellow; // Amarelo de alto contraste
+
+    [Header("Elementos de UI para Alterar Paleta")]
+    public Image[] imagensUI;          // Fundo do menu e painéis
+    public TextMeshProUGUI[] textosUI; // Texto do Dia/Status, Botões, etc.
+
     public static bool isPaused = false;
     public static bool modoDaltonicoAtivo = false;
 
@@ -93,19 +103,48 @@ public class PauseManager : MonoBehaviour
         SceneManager.LoadScene(nomeCenaMenu);
     }
 
-    // Função conectada ao On Value Changed do Dropdown de Acessibilidade
+    // Método disparado pelo Dropdown do Modo Daltônico
     public void AlterarModoDaltonico(int indiceOpcao)
     {
         modoDaltonicoAtivo = (indiceOpcao == 1);
 
-        // 1. Troca o Sprite do Jogador
+        // 1. Alterna paleta da UI (fundo e textos)
+        if (modoDaltonicoAtivo)
+        {
+            AplicarPaleta(corFundoDaltonico, corTextoDaltonico);
+        }
+        else
+        {
+            AplicarPaleta(corFundoNormal, corTextoNormal);
+        }
+
+        // 2. Alterna o Sprite do Jogador
         if (jogadorSpriteRenderer != null)
         {
             jogadorSpriteRenderer.sprite = modoDaltonicoAtivo ? spriteJogadorDaltonico : spriteJogadorNormal;
         }
 
-        // 2. Troca os Sprites de todos os raios que já estão caindo na cena
+        // 3. Alterna Sprites das Notificações/Raios na tela
         AtualizarRaiosExistentes();
+    }
+
+    private void AplicarPaleta(Color corFundo, Color corTexto)
+    {
+        if (imagensUI != null)
+        {
+            foreach (Image img in imagensUI)
+            {
+                if (img != null) img.color = corFundo;
+            }
+        }
+
+        if (textosUI != null)
+        {
+            foreach (TextMeshProUGUI txt in textosUI)
+            {
+                if (txt != null) txt.color = corTexto;
+            }
+        }
     }
 
     private void AtualizarRaiosExistentes()
