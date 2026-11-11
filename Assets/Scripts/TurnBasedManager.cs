@@ -18,8 +18,15 @@ public class TurnBasedManager : MonoBehaviour
     [Range(0, 100)] public float playerEvasionChance = 10f;
     [Range(0, 100)] public float bossEvasionChance = 20f;
 
+    private float savedPlayerCritChance;
+    private float savedPlayerEvasionChance;
+    private float savedBossEvasionChance;
+
+    public float bossMaxHealth = 100f;
+    public float bossCurrentHealth;
+
     [Header("Limites Máximos/Mínimos")]
-    public const float MAX_EVASION_LIMIT = 75f;
+    public const float MAX_EVASION_LIMIT = 30f;
     public const float MIN_EVASION_LIMIT = 5f;
 
     [Header("Estados e Status Negativos")]
@@ -29,6 +36,7 @@ public class TurnBasedManager : MonoBehaviour
 
     [Header("Turno do Boss")]
     private int bossTurnCounter = 0; 
+    private bool isAwaitingBossTurn  = false; 
 
     [Header("Elementos de HUD (UI)")]
     public Slider healthSlider;
@@ -40,6 +48,18 @@ public class TurnBasedManager : MonoBehaviour
     [Header("Painéis da HUD")]
     public GameObject mainActionsPanel;
     public GameObject skillsPanel;
+
+    [Header("Registro de Batalha (Log)")]
+    public TextMeshProUGUI battleLogText; 
+    [TextArea] public string currentLogMessage = "Derrote a prova e passe de semestre";
+    private System.Collections.Generic.Queue<string> logQueue = new System.Collections.Generic.Queue<string>();
+    private bool isDisplayingLog = false;
+    public float messageDisplayDelay = 2.0f;
+
+
+    [Header("Imagens de Efeitos (Status Visuais)")]
+    public GameObject dudaStatusImage;      
+    public GameObject distracaoStatusImage;   
 
     private void Awake()
     {
@@ -63,8 +83,47 @@ public class TurnBasedManager : MonoBehaviour
         currentHealth = maxHealth;
         currentFocus = maxFocus;
 
+        savedPlayerCritChance = playerCritChance;
+        savedPlayerEvasionChance = playerEvasionChance;
+        savedBossEvasionChance = bossEvasionChance;
+
+        if (dudaStatusImage != null) dudaStatusImage.SetActive(false);
+        if (distracaoStatusImage != null) distracaoStatusImage.SetActive(false);
+
+        bossCurrentHealth = bossMaxHealth;
         ShowMainPanel();
         UpdateHUD();
+        UpdateLog("A batalha começou!");
+    }
+
+private void UpdateLog(string message)
+    {
+        logQueue.Enqueue(message);
+
+        if (!isDisplayingLog)
+        {
+            StartCoroutine(ProcessLogQueueRoutine());
+        }
+    }
+
+    private System.Collections.IEnumerator ProcessLogQueueRoutine()
+    {
+        isDisplayingLog = true;
+
+        while (logQueue.Count > 0)
+        {
+            string nextMessage = logQueue.Dequeue();
+            currentLogMessage = nextMessage;
+
+            if (battleLogText != null)
+            {
+                battleLogText.text = currentLogMessage;
+            }
+
+            yield return new WaitForSeconds(messageDisplayDelay);
+        }
+
+        isDisplayingLog = false;
     }
 
     public void UpdateHUD()
@@ -79,23 +138,30 @@ public class TurnBasedManager : MonoBehaviour
         {
             statusText.text = hasNegativeStatus ? $"Status: <color=red>{currentStatusName}</color>" : "Status: Normal";
         }
-    }
 
+        if (dudaStatusImage != null)
+            dudaStatusImage.SetActive(hasNegativeStatus && currentStatusName == "Dúvida");
+
+        if (distracaoStatusImage != null)
+            distracaoStatusImage.SetActive(isPlayerStunnedByDistraction);
+    }
 
     public void ActionAttack()
     {
+        if (isAwaitingBossTurn) return; 
+
         if (isPlayerStunnedByDistraction)
         {
-            Debug.Log("Você está distraído e perdeu o turno!");
+            UpdateLog("Você está distraído e perdeu o turno!");
             isPlayerStunnedByDistraction = false;
+            UpdateHUD();
             EndPlayerTurn();
             return;
         }
 
-        Debug.Log("Jogador atacou!");
         if (Random.Range(0f, 100f) < bossEvasionChance)
         {
-            Debug.Log("O Boss se esquivou do ataque!");
+            UpdateLog("O Boss se esquivou do seu ataque!");
         }
         else
         {
@@ -103,9 +169,20 @@ public class TurnBasedManager : MonoBehaviour
             if (Random.Range(0f, 100f) < playerCritChance)
             {
                 damage *= 2f;
-                Debug.Log("ACERTO CRÍTICO!");
+                UpdateLog("ACERTO CRÍTICO!");
             }
-            Debug.Log($"Dano causado no Boss: {damage}");
+
+            bossCurrentHealth -= damage;
+            
+            UpdateLog($"Você causou: {damage:F1} de dano no chefe!");
+            UpdateHUD();
+
+            if (bossCurrentHealth <= 0)
+            {
+                bossCurrentHealth = 0;
+                UpdateLog("Você derrotou a prova e passou de semestre!");
+            }
+
         }
 
         EndPlayerTurn();
@@ -113,21 +190,30 @@ public class TurnBasedManager : MonoBehaviour
 
     public void ActionSkillFocus()
     {
+        if (isAwaitingBossTurn) return;
+
         if (isPlayerStunnedByDistraction)
         {
-            Debug.Log("Você está distraído e perdeu o turno!");
+            UpdateLog("Você está distraído e perdeu o turno!");
             isPlayerStunnedByDistraction = false;
+            UpdateHUD();
             EndPlayerTurn();
             return;
         }
 
-        Debug.Log("Jogador focou a mente!");
+        UpdateLog("Jogador focou a mente . . . sua chance de critico e de esquiva aumentaram!");
         
         currentFocus = Mathf.Min(currentFocus + 10f, maxFocus);
 
-        playerCritChance = Mathf.Min(playerCritChance + 15f, 100f);
-        playerEvasionChance = Mathf.Min(playerEvasionChance + 15f, MAX_EVASION_LIMIT);
-        bossEvasionChance = Mathf.Max(bossEvasionChance - 10f, MIN_EVASION_LIMIT);
+        if (!hasNegativeStatus)
+        {
+            savedPlayerCritChance = Mathf.Min(savedPlayerCritChance + 10f, 100f);
+            savedPlayerEvasionChance = Mathf.Min(savedPlayerEvasionChance + 3f, MAX_EVASION_LIMIT);
+            
+            playerCritChance = savedPlayerCritChance;
+            playerEvasionChance = savedPlayerEvasionChance;
+            bossEvasionChance = savedBossEvasionChance;
+        }
 
         UpdateHUD();
         EndPlayerTurn();
@@ -135,56 +221,60 @@ public class TurnBasedManager : MonoBehaviour
 
     public void ActionSkillCleanMind()
     {
+        if (isAwaitingBossTurn) return;
+
         if (isPlayerStunnedByDistraction)
         {
-            Debug.Log("Você está distraído e perdeu o turno!");
+            UpdateLog("Você está distraído e perdeu o turno!");
             isPlayerStunnedByDistraction = false;
+            UpdateHUD();
             EndPlayerTurn();
             return;
         }
 
-        Debug.Log("Jogador limpou a mente!");
+        UpdateLog("Você limpou a sua mente e se purificou!");
+        
         if (hasNegativeStatus)
         {
             hasNegativeStatus = false;
             currentStatusName = "Nenhum";
-        
-            playerCritChance = 10f; 
-            Debug.Log("Efeitos negativos removidos!");
+            
+            playerCritChance = savedPlayerCritChance;
+            playerEvasionChance = savedPlayerEvasionChance;
+            bossEvasionChance = savedBossEvasionChance;
+
+            UpdateLog("Efeitos negativos removidos!");
         }
 
         UpdateHUD();
         EndPlayerTurn();
     }
 
+    private void EndPlayerTestTurn() {} 
 
     private void EndPlayerTurn()
     {
+        isAwaitingBossTurn = true;
         ShowMainPanel();
         Invoke(nameof(ExecuteBossTurn), 1f);
     }
 
     private void ExecuteBossTurn()
     {
-        Debug.Log("--- Turno do Chefe ---");
+        isAwaitingBossTurn = false;
         bossTurnCounter++;
 
-        float bossDamage = Random.Range(5f, 9.1f);
+        float bossDamage = Random.Range(4f, 8.1f);
         
-        if (Random.Range(0f, 100f) < 25f) 
-        {
-            bossDamage *= 1.5f;
-            Debug.Log("CRÍTICO DO BOSS!");
-        }
-
         if (Random.Range(0f, 100f) < playerEvasionChance)
         {
-            Debug.Log("Você se esquivou do ataque físico do Chefe!");
+            UpdateLog("Você se esquivou do ataque físico do Chefe!");
         }
         else
         {
             currentHealth -= bossDamage;
-            Debug.Log($"Chefe causou {bossDamage:F1} de dano físico!");
+            UpdateLog($"Ele causou {bossDamage:F1} de dano físico em você!");
+            UpdateHUD();
         }
 
         if (bossTurnCounter >= 2)
@@ -196,59 +286,68 @@ public class TurnBasedManager : MonoBehaviour
         if (currentHealth <= 0)
         {
             currentHealth = 0;
-            Debug.Log("Jogador foi derrotado!");
-        }
+            UpdateLog("Você reprovou");
+
 
         UpdateHUD();
+    }
     }
 
     private void ExecuteBossSpell()
     {
         int chosenSpell = Random.Range(0, 2);
-
         bool spellHits = Random.Range(0f, 100f) < 75f;
 
         if (!spellHits)
         {
-            Debug.Log("O Chefe tentou lançar um feitiço, mas errou!");
+            UpdateLog("A prova tentou lançar um feitiço, mas errou!");
             return;
         }
 
         if (chosenSpell == 0)
         {
-
-            Debug.Log("Chefe lançou o feitiço: DÚVIDA!");
+            UpdateLog("A prova lançou o feitiço: DÚVIDA!");
 
             if (currentFocus > 20f)
             {
                 currentFocus -= 20f;
-                Debug.Log("Foco suficiente! O feitiço Dúvida foi anulado, perdendo 20 de Foco.");
+                UpdateLog("Seu foco foi o bastante para anular o feitiço.");
+                UpdateHUD();
             }
             else
             {
                 hasNegativeStatus = true;
-                currentStatusName = "Dúvida";
-                playerCritChance = 0f;       
-                bossEvasionChance *= 2f;     
-                Debug.Log("Foco baixo! Você foi afetado pelo status Dúvida (Crit 0%, Esquiva do Boss dobrada).");
+                currentStatusName = "Dúvida"; 
+
+                playerCritChance = 0f;
+                playerEvasionChance = 0f;
+                bossEvasionChance = Mathf.Min(savedBossEvasionChance * 2f, 100f);
+
+                UpdateLog("Seu foco não foi o bastante e agora você está com Dúvida.");
+                UpdateHUD();
             }
         }
         else
         {
-            Debug.Log("Chefe lançou o feitiço: DISTRAÇÃO!");
+            UpdateLog("Chefe lançou o feitiço: DISTRAÇÃO!");
 
             if (currentFocus < 30f)
             {
                 isPlayerStunnedByDistraction = true;
-                Debug.Log("Foco abaixo de 30! Você foi atingido por Distração e perderá o próximo turno.");
+                UpdateLog("Seu foco não foi o bastante para resistir ao feitiço de Distração!");
+                UpdateHUD();
             }
             else
             {
-                Debug.Log("Seu foco era alto o suficiente (>= 30), você resistiu à Distração!");
+                currentFocus -= 30f;
+                UpdateLog("Seu foco foi o bastante para anular o feitiço de Distração.");
+                UpdateHUD();
             }
         }
+
+        UpdateHUD();
     }
 
-    public void ShowSkillsPanel() { mainActionsPanel.SetActive(false); skillsPanel.SetActive(true); }
+    public void ShowSkillsPanel() { if (!isAwaitingBossTurn) { mainActionsPanel.SetActive(false); skillsPanel.SetActive(true); } }
     public void ShowMainPanel() { mainActionsPanel.SetActive(true); skillsPanel.SetActive(false); }
 }
