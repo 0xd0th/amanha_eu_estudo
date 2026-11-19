@@ -1,0 +1,217 @@
+[
+  {
+    "origem": "organizar/font/Daydream DEMO.otf",
+    "destino": "Assets/_game/art/fonts/daydream_demo.otf",
+    "sha256": "7394a7524cade9f546ab48defc437b3bd5dd5c200e0d3681fd5bb7a849994227"
+  },
+  {
+    "origem": "organizar/font/EmojiFont.ttf",
+    "destino": "Assets/_game/art/fonts/emojifont.ttf",
+    "sha256": "5732f6b2460af4d4daaac6a3813c15be75f4819553582eaf4be42301ac5c42f6"
+  },
+  {
+    "origem": "organizar/font/Our-Arcade-Games.ttf",
+    "destino": "Assets/_game/art/fonts/our_arcade_games.ttf",
+    "sha256": "8fc26d1b726b4bf547f71dcdff9e97f766af627aef8f7bfa9cd1c203aa89803a"
+  },
+  {
+    "origem": "organizar/font/PressStart2P.ttf",
+    "destino": "Assets/_game/art/fonts/pressstart2p.ttf",
+    "sha256": "78b71542749b2f6920f60fe2c74fe85738284dcb9cd26a7ff6a642c54d38470b"
+  },
+  {
+    "origem": "organizar/font/deltarune.ttf",
+    "destino": "Assets/_game/art/fonts/deltarune.ttf",
+    "sha256": "1be4d92436c391bfe8037f05cf55fdd0dafb644dee6a27a6c602e5f4a59c339d"
+  },
+  {
+    "origem": "organizar/hud/barra-intel.png",
+    "destino": "Assets/_game/art/ui/hud/barra_intel.png",
+    "sha256": "b5762ff8ef58a9a75c0e43e7e06ec53a5f8f338557077924054db0c4eea674e3"
+  },
+  {
+    "origem": "organizar/hud/barra-saude.png",
+    "destino": "Assets/_game/art/ui/hud/barra_saude.png",
+    "sha256": "48bb05f4c8e70a4a2b9005243c0c5b003f06512de340b611713483962d37ae97"
+  },
+  {
+    "origem": "organizar/hud/barra-social.png",
+    "destino": "Assets/_game/art/ui/hud/barra_social.png",
+    "sha256": "6ef8525661727083d0e6cc5035ebbc6306b070eda36f7980d1631c4063d07bbf"
+  },
+  {
+    "origem": "organizar/hud/calendario.png",
+    "destino": "Assets/_game/art/ui/hud/calendario.png",
+    "sha256": "74a75f22850e9ccb05e690eb77885cfcc63e542e98a520b36f4066368c7a6652"
+  },
+  {
+    "origem": "organizar/hud/conteudo-acumulado.png",
+    "destino": "Assets/_game/art/ui/hud/conteudo_acumulado.png",
+    "sha256": "8c1c707de7829ab59b532dbf0ffe5ca70485b48029f0843d656a6bd44a56c55a"
+  },
+  {
+    "origem": "organizar/hud/elementos/balao-dialogo.png",
+    "destino": "Assets/_game/art/ui/hud/elementos/balao_dialogo.png",
+    "sha256": "16570ff88eed7deec8cd2a3af7ec0cafdf7ee2d47171baba0f5bab4c3ee59564"
+  },
+  {
+    "origem": "organizar/hud/elementos/botao-selecao.png",
+    "destino": "Assets/_game/art/ui/hud/elementos/botao_selecao.png",
+    "sha256": "178da4b9e8930c0c11c7008bb69a887c2e4b447f5dadc57258fc60f2867103f0"
+  },
+  {
+    "origem": "organizar/hud/elementos/computador.png",
+    "destino": "Assets/_game/art/ui/hud/elementos/computador.png",
+    "sha256": "e865e8a37a20a10a25f73cf5358500407c2617fe4090ef6450dd3e8713fc5efb"
+  },
+  {
+    "origem": "organizar/hud/elementos/mao-telefone-1.png",
+    "destino": "Assets/_game/art/ui/hud/elementos/mao_telefone_1.png",
+    "sha256": "45dc2fecaff786cac562dfd04673ca7b994479dfe5f8a9feb04f22dbac392347"
+  },
+  {
+    "origem": "organizar/hud/elementos/mao-telefone-bloqueado.png",
+    "destino": "Assets/_game/art/ui/hud/elementos/mao_telefone_bloqueado.png",
+    "sha256": "17b88c6fd9c92e81399a14178b691b353f915076e1c397871842246e2e2d06a2"
+  },
+  {
+    "origem": "organizar/hud/elementos/mao-telefone-desbloqueado.png",
+    "destino": "Assets/_game/art/ui/hud/elementos/mao_telefone_desbloqueado.png",
+    "sha256": "f4b05414f0e9524a081173fa6b465ac5177db12bcb0f9d2fc1bc10e8ab59fbca"
+  },
+  {
+    "origem": "organizar/hud/minigame/academia/barra-cardio.png",
+    "destino": "Assets/_game/art/ui/hud/minigame/academia/barra_cardio.png",
+    "sha256": "ec39f2bb024021c75d2ad2ab57ed741f180caf2faa5959c3f4e9208751ddab6f"
+  },
+  {
+    "origem": "organizar/hud/minigame/academia/barra-musculacao.png",
+    "destino": "Assets/_game/art/ui/hud/minigame/academia/barra_musculacao.png",
+    "sha256": "3baaae5d7352e719c7a26618a4348daa6f34a38b5b03708f3aa78c174dc70fa6"
+  },
+  {
+    "origem": "organizar/hud/sinal-cansaco.png",
+    "destino": "Assets/_game/art/ui/hud/sinal_cansaco.png",
+    "sha256": "79053f4d8531ec46f0c6092161814ae9ba26a0395507528111d69402137ec5fd"
+  },
+  {
+    "origem": "organizar/menus/itens/alto-contraste.png",
+    "destino": "Assets/_game/art/ui/menus/itens/alto_contraste.png",
+    "sha256": "50bb6f6d00eca0494a2f0796476ae2362ae3a034ba07855e3fd20a8f194fe2bc"
+  },
+  {
+    "origem": "organizar/menus/itens/musica.png",
+    "destino": "Assets/_game/art/ui/menus/itens/musica.png",
+    "sha256": "f092cff128449ad997a540e88bfb86a86ed27f723a2d546c9689a9b19417c781"
+  },
+  {
+    "origem": "organizar/menus/itens/reduzir-animacoes.png",
+    "destino": "Assets/_game/art/ui/menus/itens/reduzir_animacoes.png",
+    "sha256": "ad7307cf3390c24d24492a8499ffe7a78d54a22d85f262507a8d0d499a35b8a3"
+  },
+  {
+    "origem": "organizar/menus/itens/slider-velocidade.png",
+    "destino": "Assets/_game/art/ui/menus/itens/slider_velocidade.png",
+    "sha256": "342f096f94f72c15f08a1b654c773fe71556d6a22c45069818820324836d8eaf"
+  },
+  {
+    "origem": "organizar/menus/itens/tamanho-fonte.png",
+    "destino": "Assets/_game/art/ui/menus/itens/tamanho_fonte.png",
+    "sha256": "a59e8fd382999aa1b70c1f9bf1b0c6812372ff7b013cfb2f6b3828ab157fb4ec"
+  },
+  {
+    "origem": "organizar/menus/itens/volume.png",
+    "destino": "Assets/_game/art/ui/menus/itens/volume.png",
+    "sha256": "0e6318e2ac24dee8a0a64deb2a2aef790365ef37db2e1f6e71254cbae8fa9f0e"
+  },
+  {
+    "origem": "organizar/personagens/NAKARA.png",
+    "destino": "Assets/_game/art/characters/nakara.png",
+    "sha256": "21a5d239a6ce2abaeb9a2fbfa851db9b496421a570caf15d47f8b43c6655afdb"
+  },
+  {
+    "origem": "organizar/personagens/cara-academia.png",
+    "destino": "Assets/_game/art/characters/cara_academia.png",
+    "sha256": "e31ce113fd149fcf88c83daa5cd5ea5c5c430dc9840b682988f71be77194d307"
+  },
+  {
+    "origem": "organizar/personagens/flavio.png",
+    "destino": "Assets/_game/art/characters/flavio.png",
+    "sha256": "957d7f0bbe3f6417212adf73c844cd87ce860646ec341bd8c615deee016a343a"
+  },
+  {
+    "origem": "organizar/personagens/menina-1.png",
+    "destino": "Assets/_game/art/characters/menina_1.png",
+    "sha256": "59f75796dc87578ad85cd6b2173a7faa9e478611dd602c66c984ef6f120e3e45"
+  },
+  {
+    "origem": "organizar/personagens/npc-academia.png",
+    "destino": "Assets/_game/art/characters/npc_academia.png",
+    "sha256": "f2bc8e1dd75bf6f1b2e87885103de6d69c978f794d656ee85f95a2d9bdb47632"
+  },
+  {
+    "origem": "organizar/personagens/ronaldo-1.png",
+    "destino": "Assets/_game/art/characters/ronaldo_1.png",
+    "sha256": "3536d4663e5204d4bdb6c4f7ba6766043446584436342f1312f756bbb77bb690"
+  },
+  {
+    "origem": "organizar/personagens/ronaldo-2.png",
+    "destino": "Assets/_game/art/characters/ronaldo_2.png",
+    "sha256": "a4217cf1e82beccd4a91c4ee79a3c27c732d2adc7e12650cf05f3c66c8aba182"
+  },
+  {
+    "origem": "organizar/screens/abertura/cutscene-1.png",
+    "destino": "Assets/_game/art/screens/opening/cutscene_1.png",
+    "sha256": "c50e62697a301d5c609033ae11ff6c8e51f974ce039882965f4e704d23282fbc"
+  },
+  {
+    "origem": "organizar/screens/abertura/splash-screen.png",
+    "destino": "Assets/_game/art/screens/opening/splash_screen.png",
+    "sha256": "bc9aeba8dec7341f39dac73b4eb64e411ca8353cbd79d06958b7ec31a53ba7a2"
+  },
+  {
+    "origem": "organizar/screens/academia/cenario-academia-1.png",
+    "destino": "Assets/_game/art/screens/gym/cenario_academia_1.png",
+    "sha256": "9317d94718253d9a699175b8fa7ac4d99b1fe93f3a587a4562fe796c2f4dcbea"
+  },
+  {
+    "origem": "organizar/screens/academia/elementos/esteira.png",
+    "destino": "Assets/_game/art/screens/gym/elementos/esteira.png",
+    "sha256": "3fe4bed6b7a1befbf87d1466a6ed24371011e81e9b2dcee1e4f05707bc446baa"
+  },
+  {
+    "origem": "organizar/screens/academia/elementos/halter.png",
+    "destino": "Assets/_game/art/screens/gym/elementos/halter.png",
+    "sha256": "567f1b697a99d5c407abd58fc20eb40dc5a6b564cafe0254883774683ab8fbde"
+  },
+  {
+    "origem": "organizar/screens/academia/elementos/voador.png",
+    "destino": "Assets/_game/art/screens/gym/elementos/voador.png",
+    "sha256": "6d709b555e1c29457f5a4b4f8fa051829fed6ddf50e052fde155396c95e12414"
+  },
+  {
+    "origem": "organizar/screens/academia/tutorial/pressionar-espaco.png",
+    "destino": "Assets/_game/art/screens/gym/tutorial/pressionar_espaco.png",
+    "sha256": "a79809abbd02fb83733b259658fe3b5fffc257f79c49cdccf0710dc86ecab55d"
+  },
+  {
+    "origem": "organizar/screens/casa/cenario-casa-1.png",
+    "destino": "Assets/_game/art/screens/home/cenario_casa_1.png",
+    "sha256": "2313fdd97e45f66f301ea3a60dfac203123d36ef84b2e312c8e8cec2d75d7aac"
+  },
+  {
+    "origem": "organizar/screens/facul/cenario-facul-1.png",
+    "destino": "Assets/_game/art/screens/college/cenario_facul_1.png",
+    "sha256": "23dcd759fdd441da7f6160b16af7202bfe8ca65fd1c9da785713c5301b41ba9a"
+  },
+  {
+    "origem": "organizar/screens/facul/cenario-facul-2.png",
+    "destino": "Assets/_game/art/screens/college/cenario_facul_2.png",
+    "sha256": "333bdd5d4d34021e24c7e44b5db1c7bb60368c03cb0eb902ca08a05d36c927e1"
+  },
+  {
+    "origem": "organizar/screens/facul/cenario-facul-sala.png",
+    "destino": "Assets/_game/art/screens/college/cenario_facul_sala.png",
+    "sha256": "7c46298289254f4199034eb3650378e430b9f4cb65f5f8b22ef917753c255f42"
+  }
+]
