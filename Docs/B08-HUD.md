@@ -6,7 +6,7 @@
 Assets/_Project/
   Scripts/UI/          AmanhaEuEstudo.UI  (refs: Core, UnityEngine.UI, Unity.TextMeshPro)
   Scripts/Editor/      + B08Menu (agora referencia UI, UnityEngine.UI, Unity.TextMeshPro)
-  Art/UI/HUD/Placeholder/   PNGs placeholder + white_pixel.png (gerado pelo menu)
+  Assets/_game/art/ui/hud/placeholder/   PNGs placeholder + white_pixel.png (gerado pelo menu)
   Data/HudConfig.asset      (gerado pelo menu)
   Prefabs/UI/HUD.prefab, StatBar.prefab   (gerados pelo menu)
   Scenes/B08_HudTestScene.unity           (gerada pelo menu)

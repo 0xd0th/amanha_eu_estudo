@@ -15,7 +15,7 @@ namespace AmanhaEuEstudo.EditorTools
     // Editor menus for the HUD card (B08). Nothing is overwritten: existing assets are logged and skipped.
     public static class B08Menu
     {
-        private const string SpriteFolder = "Assets/_Project/Art/UI/HUD/Placeholder";
+        private const string SpriteFolder = "Assets/_game/art/ui/hud/placeholder";
         private const string WhitePixelPath = SpriteFolder + "/white_pixel.png";
         private const string ConfigPath = "Assets/_Project/Data/HudConfig.asset";
         private const string GameConfigPath = "Assets/_Project/Data/GameConfig.asset";
