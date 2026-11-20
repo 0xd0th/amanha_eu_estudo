@@ -10,10 +10,10 @@ namespace AmanhaEuEstudo.EditorTools
 {
     public static class B02Menu
     {
-        private const string DataFolder = "Assets/_Project/Data";
-        private const string ChoicesFolder = DataFolder + "/Choices";
+        private const string DataFolder = "Assets/_game/data/game_rules";
+        private const string ChoicesFolder = DataFolder + "/choices";
         private const string ConfigPath = DataFolder + "/GameConfig.asset";
-        private const string ScenePath = "Assets/_Project/Scenes/B02_DebugScene.unity";
+        private const string ScenePath = "Assets/_game/scenes/B02_DebugScene.unity";
 
         private struct ChoiceSpec
         {
@@ -140,7 +140,7 @@ namespace AmanhaEuEstudo.EditorTools
             }
             if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
 
-            EnsureFolder("Assets/_Project/Scenes");
+            EnsureFolder("Assets/_game/scenes");
             Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             // NewScene can unload assets loaded before it; load the config again.
             config = AssetDatabase.LoadAssetAtPath<GameConfig>(ConfigPath);

@@ -17,12 +17,12 @@ namespace AmanhaEuEstudo.EditorTools
     {
         private const string SpriteFolder = "Assets/_game/art/ui/hud/placeholder";
         private const string WhitePixelPath = SpriteFolder + "/white_pixel.png";
-        private const string ConfigPath = "Assets/_Project/Data/HudConfig.asset";
-        private const string GameConfigPath = "Assets/_Project/Data/GameConfig.asset";
-        private const string PrefabFolder = "Assets/_Project/Prefabs/UI";
+        private const string ConfigPath = "Assets/_game/data/game_rules/HudConfig.asset";
+        private const string GameConfigPath = "Assets/_game/data/game_rules/GameConfig.asset";
+        private const string PrefabFolder = "Assets/_game/prefabs/ui";
         private const string StatBarPath = PrefabFolder + "/StatBar.prefab";
         private const string HudPath = PrefabFolder + "/HUD.prefab";
-        private const string ScenePath = "Assets/_Project/Scenes/B08_HudTestScene.unity";
+        private const string ScenePath = "Assets/_game/scenes/B08_HudTestScene.unity";
         private const string TmpSettingsPath = "Assets/TextMesh Pro/Resources/TMP Settings.asset";
 
         private static readonly string[] RequiredSprites =
@@ -110,7 +110,7 @@ namespace AmanhaEuEstudo.EditorTools
             }
 
             ConfigureHudSprites();
-            EnsureFolder("Assets/_Project/Data");
+            EnsureFolder("Assets/_game/data/game_rules");
             EnsureFolder(PrefabFolder);
 
             var font = TMP_Settings.defaultFontAsset;
@@ -337,7 +337,7 @@ namespace AmanhaEuEstudo.EditorTools
             }
             if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
 
-            EnsureFolder("Assets/_Project/Scenes");
+            EnsureFolder("Assets/_game/scenes");
             Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
             // NewScene can unload the assets loaded above (nothing referenced them), which would leave the

@@ -3,13 +3,13 @@
 ## Visão geral
 
 ```
-Assets/_Project/
-  Scripts/Core/        AmanhaEuEstudo.Core        (sem dependência de UGUI/Input System)
-  Scripts/DebugTools/  AmanhaEuEstudo.DebugTools  (DebugHud: UI de teste, referencia Core + UGUI + Input System)
-  Scripts/Editor/      AmanhaEuEstudo.EditorTools (menus Tools > Amanhã eu estudo)
-  Tests/EditMode/      AmanhaEuEstudo.Tests.EditMode
-  Data/                GameConfig.asset e Choices/*.asset (gerados pelo menu)
-  Scenes/B02_DebugScene.unity
+Assets/_game/
+  scripts/core/          AmanhaEuEstudo.Core        (sem dependência de UGUI/Input System)
+  scripts/debug_tools/   AmanhaEuEstudo.DebugTools  (DebugHud: UI de teste, referencia Core + UGUI + Input System)
+  scripts/editor_tools/  AmanhaEuEstudo.EditorTools (menus Tools > Amanhã eu estudo)
+  tests/edit_mode/       AmanhaEuEstudo.Tests.EditMode
+  data/game_rules/       GameConfig.asset e choices/*.asset (gerados pelo menu)
+  scenes/B02_DebugScene.unity
 ```
 
 | Tipo | Papel |
@@ -93,7 +93,7 @@ Se a mesma barra aparecer mais de uma vez no desgaste diário do `GameConfig` ou
 
 1. Menu `Tools > Amanhã eu estudo > Criar dados de exemplo` (não sobrescreve nada que já existe; loga o que pulou).
 2. Menu `Tools > Amanhã eu estudo > Criar cena de debug`.
-3. Abra `Assets/_Project/Scenes/B02_DebugScene.unity` e dê Play.
+3. Abra `Assets/_game/scenes/B02_DebugScene.unity` e dê Play.
 4. Há um botão por escolha disponível; o texto mostra dia, período, estado de exaustão e as três barras. "Reiniciar" restaura o estado inicial. Burnout mostra mensagem de fim de jogo.
 
 Para exercitar o Exausto: escolha "Virar a noite estudando" ou "Ir para a boate" à noite; na manhã seguinte aparecem "Ir mesmo cansado" e "Faltar e dormir".

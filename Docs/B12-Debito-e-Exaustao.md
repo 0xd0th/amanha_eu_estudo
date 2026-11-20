@@ -5,10 +5,11 @@ Estende o B02 (GameManager, dias e status) e liga o débito ao HUD do B08. Estad
 ## O que mudou
 
 ```
-Scripts/Core/      + StatFactor; GameState, ChoiceData, GameRules, GameManager estendidos
-Scripts/UI/        HudView escuta OnStudyDebtChanged (DebtPileView não mudou)
-Scripts/Editor/    + StatEntryDrawers (rótulo com o nome da barra), + B12Menu, B02Menu com os valores novos
-Scripts/DebugTools DebugHud estendido; HudDebugPanel removido
+scripts/core/          + StatFactor; GameState, ChoiceData, GameRules, GameManager estendidos
+scripts/hud/           HudView escuta OnStudyDebtChanged (DebtPileView não mudou)
+scripts/editor_tools/  + StatEntryDrawers (rótulo com o nome da barra), + B12Menu, B02Menu com os valores novos
+scripts/debug_tools/   DebugHud estendido; HudDebugPanel removido
+(todas as pastas acima ficam em Assets/_game/)
 ```
 
 O Core continua sem referências. Nenhum número de balanceamento está no código: tudo vem dos `ChoiceData`.

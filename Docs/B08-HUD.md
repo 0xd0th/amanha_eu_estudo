@@ -3,13 +3,13 @@
 ## Estrutura
 
 ```
-Assets/_Project/
-  Scripts/UI/          AmanhaEuEstudo.UI  (refs: Core, UnityEngine.UI, Unity.TextMeshPro)
-  Scripts/Editor/      + B08Menu (agora referencia UI, UnityEngine.UI, Unity.TextMeshPro)
-  Assets/_game/art/ui/hud/placeholder/   PNGs placeholder + white_pixel.png (gerado pelo menu)
-  Data/HudConfig.asset      (gerado pelo menu)
-  Prefabs/UI/HUD.prefab, StatBar.prefab   (gerados pelo menu)
-  Scenes/B08_HudTestScene.unity           (gerada pelo menu)
+Assets/_game/
+  scripts/hud/         AmanhaEuEstudo.UI  (refs: Core, UnityEngine.UI, Unity.TextMeshPro)
+  scripts/editor_tools/ + B08Menu (agora referencia UI, UnityEngine.UI, Unity.TextMeshPro)
+  art/ui/hud/placeholder/   PNGs placeholder + white_pixel.png (gerado pelo menu)
+  data/game_rules/HudConfig.asset      (gerado pelo menu)
+  prefabs/ui/HUD.prefab, StatBar.prefab   (gerados pelo menu)
+  scenes/B08_HudTestScene.unity           (gerada pelo menu)
 ```
 
 Dependências: `Core` (sem referências) ← `UI` ← `DebugTools` ← `EditorTools`; `Tests.EditMode` → `Core`, `UI`. O Core não conhece o HUD.

@@ -10,7 +10,7 @@ namespace AmanhaEuEstudo.EditorTools
     // Only the fields listed below are touched; every change is logged; running it twice changes nothing.
     public static class B12Menu
     {
-        private const string ChoicesFolder = "Assets/_Project/Data/Choices";
+        private const string ChoicesFolder = "Assets/_game/data/game_rules/choices";
 
         // Target values. B02Menu uses the same ones so a clean project is born with them.
         // PLACEHOLDER balance values, pending team decision (G03).
