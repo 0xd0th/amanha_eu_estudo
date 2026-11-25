@@ -110,3 +110,13 @@ o guia das escolhas pelo telefone está em `Docs/choices_readme.md`. a documenta
 ```
 
 o arquivo da cena continua como `00_opening.unity`. o objeto `OpeningController` recebe o script `OpeningController.cs`. um arquivo de prefab pode se chamar `new_game_button.prefab`, enquanto seu objeto na hierarquia se chama `NewGameButton`.
+
+## primeira cutscene — novo jogo
+
+Na cena `Assets/_game/scenes/00_opening.unity`, o botão `NewGameButton` chama `NewGameCutsceneController.BeginNewGame()`. O componente está no objeto `OpeningController`, junto do controlador da abertura, mas mantém uma sequência independente.
+
+Fluxo: título “14 DIAS ANTES...” por 2,5 segundos → despertador por 1,2 segundo → três falas amarelas com digitação → tela preta e evento de conclusão (`On Completed`). Clique ou Enter revela a fala; a próxima confirmação avança. A sequência usa tempo independente de `Time.timeScale`.
+
+No Inspector do componente é possível mudar a fonte, cor, título, falas, duração do título/despertador, velocidade de digitação e as artes. A apresentação é construída ao clicar em Novo Jogo, sob `NewGamePresentation`; altere as configurações fora do Play Mode para persistir. Os assets originais e o menu anterior são preservados.
+
+O telefone e a primeira manhã serão implementados em outra cena. O controlador não cria essa interface. Ao terminar, emite `On Completed` uma única vez; na cena `00_opening`, esse evento chama `LoadNextScene("01_init_screen")`. A cena seguinte é carregada em modo Single, substituindo a abertura. Ambas estão habilitadas na lista de build.
